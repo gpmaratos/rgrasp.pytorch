@@ -17,7 +17,7 @@ class CornellDataset(Dataset):
         self.angs = np.array([i for i in range(90, -90, -180//k)])
         self.iwidth = 320
         self.anum = 10
-        self.adim = iwidth // anum
+        self.adim = self.iwidth // self.anum
         self.cXl = 120
         self.cXr = 200
         self.cYu = 100
