@@ -6,7 +6,7 @@ from torchvision.models import resnet50
 class graspn(nn.Module):
     def __init__(self, smodel, nang):
         super(graspn, self).__init__()
-        if smodel = "resnet50":
+        if smodel == "resnet50":
             backb = resnet50(pretrained=True)
             self.layer0 = Sequential(\
                             backb.conv1,\
