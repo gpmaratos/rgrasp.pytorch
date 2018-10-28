@@ -4,16 +4,19 @@ import numpy as np
 from torch.utils.data import Dataset
 
 class CornellDataset(Dataset):
-    def __init__(self, dpath, iwidth, anum):
+    def __init__(self, dpath, k):
         """There were NaNs in image 132 and 165 so they are ignored.
+        FIXED: output image dimensions, and dimension of the feature map
         I assume the images are 640 X 480, and manually crop them
         with cXl through cYd"""
 
+        self.dpath = dpath
         self.index = np.array(list(range(100, 132))
             +list(range(133, 165)) + list(range(166, 950))
             + list(range(1000, 1035)), dtype=int)
-        self.dpath = dpath
-        self.iwidth = iwidth
+        self.angs = np.array([i for i in range(90, -90, -180//k)])
+        self.iwidth = 320
+        self.anum = 10
         self.adim = iwidth // anum
         self.cXl = 120
         self.cXr = 200
@@ -70,3 +73,7 @@ class CornellDataset(Dataset):
             yhat = rec[0][1] - rec[1][1]
             ang = math.atan2(-1*yhat, xhat)
         return (x - wcrop, y - lcrop, width, height, ang)
+
+    def get_anchor_ind(self, angle):
+        """retrieve the index of the closest anchor"""
+        return np.abs(self.angs-angle).argmin()
