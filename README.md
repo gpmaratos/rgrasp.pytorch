@@ -1,6 +1,6 @@
 # pytorch.rgrasp
 
-This is my implementation of the network found in
+This is my work relating to applying the network found in
 A Real-time Robotic Grasp Approach with Oriented Anchor Box
 https://arxiv.org/abs/1809.03873
 
