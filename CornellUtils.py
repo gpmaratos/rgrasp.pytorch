@@ -16,7 +16,7 @@ class CornellDataset(Dataset):
         self.index = np.array(list(range(100, 132))
             +list(range(133, 165)) + list(range(166, 950))
             + list(range(1000, 1035)), dtype=int)
-        self.angs = np.array([i for i in range(90, -90, -180//k)])
+        self.angs = np.array([math.radians(i) for i in range(90, -90, -180//k)])
         self.iwidth = 320
         self.anum = 10
         self.adim = self.iwidth // self.anum
@@ -64,8 +64,8 @@ class CornellDataset(Dataset):
         xhat = rec[0][0] - rec[1][0]
         yhat = rec[0][1] - rec[1][1]
         height = math.sqrt(xhat**2 + yhat**2)
-        x = float(sum([point[0] for point in rec]))/4
-        y = float(sum([point[1] for point in rec]))/4
+        x = float(sum([point[0] for point in rec]))/4 - wcrop
+        y = float(sum([point[1] for point in rec]))/4 - lcrop
         if rec[0][0] < rec[1][0]:
             xhat = rec[1][0] - rec[0][0]
             yhat = rec[1][1] - rec[0][1]
@@ -74,7 +74,17 @@ class CornellDataset(Dataset):
             xhat = rec[0][0] - rec[1][0]
             yhat = rec[0][1] - rec[1][1]
             ang = math.atan2(-1*yhat, xhat)
-        return (x - wcrop, y - lcrop, width, height, ang)
+#        return (x - wcrop, y - lcrop, width, height, ang)
+        xpos = x // self.adim
+        ypos = y // self.adim
+        apos = self.get_anchor_ind(ang)
+        return ((x - (xpos*self.adim + self.adim/2)) / self.adim,
+                (y - (ypos*self.adim + self.adim/2)) / self.adim,
+                math.log(width / self.adim),
+                math.log(height / self.adim),
+                (ang - self.angs[apos])/(180/len(self.angs)),
+                xpos, ypos, apos)
+
 
     def get_anchor_ind(self, angle):
         """retrieve the index of the closest anchor"""
