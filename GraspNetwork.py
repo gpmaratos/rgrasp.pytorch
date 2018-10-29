@@ -18,8 +18,7 @@ class graspn(nn.Module):
             self.layer3 = backb.layer3
             self.layer4 = backb.layer4
             self.netr = Conv2d(2048, 5*nang, 3, padding=1)
-            self.netcp = Conv2d(2048, nang, 3, padding=1)
-            self.netcn = Conv2d(2048, nang, 3, padding=1)
+            self.netcls = Conv2d(2048, 2*nang, 3, padding=1)
 
     def forward(self, x):
         x = self.layer0(x)
@@ -28,6 +27,6 @@ class graspn(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         r = self.netr(x)
-        p = self.netcp(x)
-        n = self.netcn(x)
-        return r, p, n
+        c = self.netcls(x)
+        return r.permute(0, 2, 3, 1).contiguous().reshape(-1, 5),\
+                    c.permute(0, 2, 3, 1).contiguous().reshape(-1, 2)
