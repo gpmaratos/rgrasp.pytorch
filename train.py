@@ -28,7 +28,8 @@ if __name__ == "__main__":
     net = graspn(backb, numa).to(dev)
 
     lr = 1e-4
-    opt = optim.SGD(net.parameters(), lr=lr, weight_decay=1e-4)
+    opt = optim.SGD(net.parameters(), lr=lr, weight_decay=1e-4,\
+        momentum=0.9)
 
     print("Begin Training")
     for epoch in range(1, 100):
@@ -37,33 +38,24 @@ if __name__ == "__main__":
             #Forward Pass
             dataX, dataY = ds[ex]
             dataX = dataX.reshape(-1, 3, ds.iwidth, ds.iwidth).to(dev)
-            outr, outp, outn = net(dataX)
+            preg, pcls = net(dataX)
             #Calculate Loss
-            lreg, lcls = torch.zeros(1).to(dev), torch.zeros(1).to(dev)
-            pinds = []
-            outpv = -1*F.log_softmax(outp.view(-1), dim=0)
-            for t in dataY:
-                aind = ds.get_anchor_ind(t[4])
-                xpos = int((t[0]-ds.cXl) // ds.adim)
-                ypos = int((t[1]-ds.cYu) // ds.adim)
-                t = ((t[0] - xpos*ds.adim+(ds.adim/2))/ds.adim,\
-                    (t[1] - ypos*ds.adim+(ds.adim/2))/ds.adim,\
-                    math.log(t[2]/ds.adim), math.log(t[3]/ds.adim),\
-                    (t[4] - ds.angs[aind])/(180/numa))
-                t = torch.Tensor(t).reshape(-1, 5).to(dev)
-                rp = outr[:, 5*aind:5*aind+5, xpos, ypos]
-                #pindx = utils.tr(aind, xpos, ypos, outp)
-                #NEEDS confirming
-                pindx = aind*ds.anum**2 + xpos*ds.anum + ypos
-                pinds.append(pindx)
-                lreg += F.smooth_l1_loss(rp, t)
-                lcls += outpv[pindx]
-            length = 3*len(pinds)
-            outuv = -1*F.log_softmax(outn.view(-1), dim=0)
-            outpv[pinds] = 0
-            _ , indicies = torch.sort(outpv, descending=True)
-            lcls += torch.sum(outuv[indicies[:length]])
-            loss = (lcls + 2*lreg) / 4*len(pinds)
+            tgs = torch.Tensor(dataY)
+            inds = tgs[:, -3:].long()
+            finds = inds[:, -1]*ds.anum**2 + inds[:, -3]*ds.anum\
+                + inds[:, -2]
+            tgr = tgs[:, :-3].to(dev)
+            lreg = F.smooth_l1_loss(preg[finds], tgr)
+            prec = pcls[finds]
+            conf = F.softmax(pcls[:, 1], dim=0)
+            conf[finds] = 0
+            _, ninds = torch.sort(conf, descending=True)
+            nrec = pcls[ninds[:3*len(finds)]]
+            tcls = torch.zeros(4*len(finds), dtype=torch.long).to(dev)
+            tcls[:len(finds)] = 1
+            prcls = torch.cat((prec, nrec))
+            lcls = F.cross_entropy(prcls, tcls)
+            loss = (lcls + 2*lreg) / 4*len(finds)
             with torch.no_grad():
                 lravg.append(lreg)
                 lcavg.append(lcls)
