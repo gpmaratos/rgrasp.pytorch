@@ -12,7 +12,7 @@ if __name__ == "__main__":
     parser.add_argument("dpath", type=str, help="path to the data")
     parser.add_argument("bbone", type=str, help="backbone type")
     parser.add_argument("angles", type=int, help="number of angles or k")
-    parser.add_argument("-a", help="perform image augmentation"
+    parser.add_argument("-a", help="perform image augmentation",
     action="store_true")
     args = parser.parse_args()
     datap = args.dpath

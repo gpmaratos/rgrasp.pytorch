@@ -48,12 +48,11 @@ class CornellDataset(Dataset):
         irecs = [[(x-self.cXl, y-self.cYu) for x, y in rec]
             for rec in irecs]
         #IMAGE TRANSFORMATIONS
-        import pdb;pdb.set_trace()
         if self.aug:
             theta = round(random.uniform(-30, 30), 3)
             iarr = skimage.transform.rotate(iarr, theta,
-            theta = math.radians(-1*theta)
                 preserve_range=True)
+            theta = math.radians(-1*theta)
             if random.randint(0, 1):
                 iarr = np.flipud(iarr)
                 fhorz = True
@@ -68,15 +67,15 @@ class CornellDataset(Dataset):
                         st*coord[0] + ct*coord[1])
                         for coord in coords] for coords in irecs]
             irecs = [[(coord[0] + 160, coord[1] + 160)
+                for coord in coords] for coords in irecs]
             if fhorz:
                 irecs = [[(320 - coord[0], coord[1]) for coord in coords]
-                    for coords in rrecs]
+                    for coords in irecs]
             else:
-                irecs = [[coord[0], 320 - coord[1]) for coord in coords]
-                    for coords in rrecs]
-        import pdb;pdb.set_trace()
+                irecs = [[(coord[0], 320 - coord[1]) for coord in coords]
+                    for coords in irecs]
         irecs = [self.get_tuple(irec) for irec in irecs]
-        return torch.Tensor(iarr.transpose(2, 0, 1)).float(), irecs
+        return torch.Tensor(iarr.transpose(2, 0, 1).copy()).float(), irecs
 
     def get_coord(self, f):
         """given a string containing coordinates, convert them to
