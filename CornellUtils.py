@@ -54,11 +54,15 @@ class CornellDataset(Dataset):
                 preserve_range=True)
             theta = math.radians(-1*theta)
             if random.randint(0, 1):
-                iarr = np.fliplr(iarr)
-                fhorz = True
+                flip = True
+                if random.randint(0, 1):
+                    iarr = np.fliplr(iarr)
+                    fhorz = True
+                else:
+                    iarr = np.flipud(iarr)
+                    fhorz = False
             else:
-                iarr = np.flipud(iarr)
-                fhorz = False
+                flip = False
             irecs = [[(coord[0] - 160, coord[1] - 160)
                 for coord in coords] for coords in irecs]
             ct = math.cos(theta)
@@ -68,12 +72,13 @@ class CornellDataset(Dataset):
                         for coord in coords] for coords in irecs]
             irecs = [[(coord[0] + 160, coord[1] + 160)
                 for coord in coords] for coords in irecs]
-            if fhorz:
-                irecs = [[(320 - coord[0], coord[1]) for coord in coords]
-                    for coords in irecs]
-            else:
-                irecs = [[(coord[0], 320 - coord[1]) for coord in coords]
-                    for coords in irecs]
+            if flip:
+                if fhorz:
+                    irecs = [[(320 - cd[0], cd[1]) for cd in coords]
+                        for coords in irecs]
+                else:
+                    irecs = [[(cd[0], 320 - cd[1]) for cd in coords]
+                        for coords in irecs]
         irecs = [self.get_tuple(irec) for irec in irecs]
         return torch.Tensor(iarr.transpose(2, 0, 1).copy()).float(), irecs
 
