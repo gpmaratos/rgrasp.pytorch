@@ -74,7 +74,6 @@ class CornellDataset(Dataset):
             xhat = rec[0][0] - rec[1][0]
             yhat = rec[0][1] - rec[1][1]
             ang = math.atan2(-1*yhat, xhat)
-#        return (x - wcrop, y - lcrop, width, height, ang)
         xpos = x // self.adim
         ypos = y // self.adim
         apos = self.get_anchor_ind(ang)
@@ -84,7 +83,6 @@ class CornellDataset(Dataset):
                 math.log(height / self.adim),
                 (ang - self.angs[apos])/(180/len(self.angs)),
                 xpos, ypos, apos)
-
 
     def get_anchor_ind(self, angle):
         """retrieve the index of the closest anchor"""
