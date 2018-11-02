@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from PIL import ImageDraw
 
+#DELETE WHEN DONE WITH DEMO FUNCTION
+import skimage
+import os
+
 class Display(CornellDataset):
     def __init__(self, dpath, bbone, wpath, numa):
         super().__init__(dpath, numa)
@@ -54,4 +58,84 @@ class Display(CornellDataset):
 
             draw.line(coords, fill=(200, 0, 0))
         plt.imshow(img)
+        plt.show()
+
+    def demo(self, idx):
+        """demo function that will display images and their
+            transformations """
+        ipref = os.path.join(self.dpath, "pcd%04d"%(self.index[idx]))
+        ipath = ipref + "r.png"
+        iarr = skimage.io.imread(ipath)
+        iarr = skimage.util.crop(iarr, ((self.cYu, self.cYd),
+            (self.cXl, self.cXr), (0, 0)))
+        with open(ipref+"cpos.txt") as f:
+            f = f.read().split("\n")[:-1]
+            irecs = [[self.get_coord(f[i]), self.get_coord(f[i+1]),
+                        self.get_coord(f[i+2]), self.get_coord(f[i+3])]
+                            for i in range(0, len(f), 4)]
+        with open(ipref+"cpos.txt") as f:
+            f = f.read().split("\n")[:-1]
+            irecs = [[self.get_coord(f[i]), self.get_coord(f[i+1]),
+                        self.get_coord(f[i+2]), self.get_coord(f[i+3])]
+                            for i in range(0, len(f), 4)]
+            modirec = [[(x-self.cXl, y-self.cYu) for x, y in rec] for rec in irecs]
+
+        #DISPLAY UNMODIFIED IMAGE
+        img = Image.fromarray(iarr, "RGB")
+        draw = ImageDraw.Draw(img)
+        [(draw.line(rec[:2], fill=(200, 0, 0))\
+            ,draw.line(rec[1:], fill=(0, 0, 0))) for rec in modirec]
+        plt.imshow(img)
+        plt.show()
+
+        #ROTATE IMAGE
+        theta = -45
+        rimg = skimage.transform.rotate(iarr, theta, preserve_range=True)
+        rrecs = [[(coord[0] - 160, coord[1] - 160) for coord in coords] for coords in modirec]
+        theta = math.radians(-1*theta)
+        rrecs = [[(math.cos(theta)*coord[0] - math.sin(theta)*coord[1],
+                    math.sin(theta)*coord[0] + math.cos(theta)*coord[1])
+                    for coord in coords] for coords in rrecs]
+        rrecs = [[(coord[0] + 160, coord[1] + 160) for coord in coords] for coords in rrecs]
+        rimg = Image.fromarray(rimg.astype('uint8'), "RGB")
+        draw = ImageDraw.Draw(rimg)
+        [(draw.line(rec[:2], fill=(200, 0, 0))\
+            ,draw.line(rec[1:], fill=(0, 0, 0))) for rec in rrecs]
+        plt.imshow(rimg)
+        plt.show()
+
+        #FLIP THE IMAGE LR AFTER ROTATION
+        theta = -45
+        rfimg = skimage.transform.rotate(iarr, theta, preserve_range=True)
+        rfimg = np.fliplr(rfimg)
+        rrecs = [[(coord[0] - 160, coord[1] - 160) for coord in coords] for coords in modirec]
+        theta = math.radians(-1*theta)
+        rrecs = [[(math.cos(theta)*coord[0] - math.sin(theta)*coord[1],
+                    math.sin(theta)*coord[0] + math.cos(theta)*coord[1])
+                    for coord in coords] for coords in rrecs]
+        rrecs = [[(coord[0] + 160, coord[1] + 160) for coord in coords] for coords in rrecs]
+        rrecs = [[(320 - coord[0], coord[1]) for coord in coords] for coords in rrecs]
+        rfimg = Image.fromarray(rfimg.astype('uint8'), "RGB")
+        draw = ImageDraw.Draw(rfimg)
+        [(draw.line(rec[:2], fill=(200, 0, 0))\
+            ,draw.line(rec[1:], fill=(0, 0, 0))) for rec in rrecs]
+        plt.imshow(rfimg)
+        plt.show()
+
+        #FLIP THE IMAGE UD AFTER ROTATION
+        theta = -45
+        rfimg = skimage.transform.rotate(iarr, theta, preserve_range=True)
+        rfimg = np.flipud(rfimg)
+        rrecs = [[(coord[0] - 160, coord[1] - 160) for coord in coords] for coords in modirec]
+        theta = math.radians(-1*theta)
+        rrecs = [[(math.cos(theta)*coord[0] - math.sin(theta)*coord[1],
+                    math.sin(theta)*coord[0] + math.cos(theta)*coord[1])
+                    for coord in coords] for coords in rrecs]
+        rrecs = [[(coord[0] + 160, coord[1] + 160) for coord in coords] for coords in rrecs]
+        rrecs = [[(coord[0], 320 - coord[1]) for coord in coords] for coords in rrecs]
+        rfimg = Image.fromarray(rfimg.astype('uint8'), "RGB")
+        draw = ImageDraw.Draw(rfimg)
+        [(draw.line(rec[:2], fill=(200, 0, 0))\
+            ,draw.line(rec[1:], fill=(0, 0, 0))) for rec in rrecs]
+        plt.imshow(rfimg)
         plt.show()
