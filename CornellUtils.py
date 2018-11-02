@@ -2,17 +2,19 @@ import os
 import math
 import skimage
 import torch
+import random
 import numpy as np
 from torch.utils.data import Dataset
 
 class CornellDataset(Dataset):
-    def __init__(self, dpath, k):
+    def __init__(self, dpath, aug, k):
         """There were NaNs in image 132 and 165 so they are ignored.
         FIXED: output image dimensions, and dimension of the feature map
         I assume the images are 640 X 480, and manually crop them
         with cXl through cYd"""
 
         self.dpath = dpath
+        self.aug = aug
         self.index = np.array(list(range(100, 132))
             +list(range(133, 165)) + list(range(166, 950))
             + list(range(1000, 1035)), dtype=int)
@@ -43,8 +45,37 @@ class CornellDataset(Dataset):
             irecs = [[self.get_coord(f[i]), self.get_coord(f[i+1]),
                         self.get_coord(f[i+2]), self.get_coord(f[i+3])]
                             for i in range(0, len(f), 4)]
-            irecs = [self.get_tuple(irec, self.cXl, self.cYu)
-                for irec in irecs]
+        irecs = [[(x-self.cXl, y-self.cYu) for x, y in rec]
+            for rec in irecs]
+        #IMAGE TRANSFORMATIONS
+        import pdb;pdb.set_trace()
+        if self.aug:
+            theta = round(random.uniform(-30, 30), 3)
+            iarr = skimage.transform.rotate(iarr, theta,
+            theta = math.radians(-1*theta)
+                preserve_range=True)
+            if random.randint(0, 1):
+                iarr = np.flipud(iarr)
+                fhorz = True
+            else:
+                iarr = np.flipud(iarr)
+                fhorz = False
+            irecs = [[(coord[0] - 160, coord[1] - 160)
+                for coord in coords] for coords in irecs]
+            ct = math.cos(theta)
+            st = math.sin(theta)
+            irecs = [[(ct*coord[0] - st*coord[1],
+                        st*coord[0] + ct*coord[1])
+                        for coord in coords] for coords in irecs]
+            irecs = [[(coord[0] + 160, coord[1] + 160)
+            if fhorz:
+                irecs = [[(320 - coord[0], coord[1]) for coord in coords]
+                    for coords in rrecs]
+            else:
+                irecs = [[coord[0], 320 - coord[1]) for coord in coords]
+                    for coords in rrecs]
+        import pdb;pdb.set_trace()
+        irecs = [self.get_tuple(irec) for irec in irecs]
         return torch.Tensor(iarr.transpose(2, 0, 1)).float(), irecs
 
     def get_coord(self, f):
@@ -54,7 +85,7 @@ class CornellDataset(Dataset):
         ln = f.split()
         return (float(ln[0]), float(ln[1]))
 
-    def get_tuple(self, rec, wcrop, lcrop):
+    def get_tuple(self, rec):
         """given a set of coordinates representing a rectangle,
             compute the tuple t"""
 
@@ -64,8 +95,8 @@ class CornellDataset(Dataset):
         xhat = rec[0][0] - rec[1][0]
         yhat = rec[0][1] - rec[1][1]
         height = math.sqrt(xhat**2 + yhat**2)
-        x = float(sum([point[0] for point in rec]))/4 - wcrop
-        y = float(sum([point[1] for point in rec]))/4 - lcrop
+        x = float(sum([point[0] for point in rec]))/4
+        y = float(sum([point[1] for point in rec]))/4
         if rec[0][0] < rec[1][0]:
             xhat = rec[1][0] - rec[0][0]
             yhat = rec[1][1] - rec[0][1]
