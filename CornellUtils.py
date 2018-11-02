@@ -54,7 +54,7 @@ class CornellDataset(Dataset):
                 preserve_range=True)
             theta = math.radians(-1*theta)
             if random.randint(0, 1):
-                iarr = np.flipud(iarr)
+                iarr = np.fliplr(iarr)
                 fhorz = True
             else:
                 iarr = np.flipud(iarr)
