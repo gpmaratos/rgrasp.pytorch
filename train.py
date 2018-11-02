@@ -9,22 +9,21 @@ from torch.nn import functional as F
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    #parser.add_argument("-a", help="perform image augmentation"
-    #action="store_true")
-    #this will be used when I implement image transformations
-
     parser.add_argument("dpath", type=str, help="path to the data")
     parser.add_argument("bbone", type=str, help="backbone type")
     parser.add_argument("angles", type=int, help="number of angles or k")
+    parser.add_argument("-a", help="perform image augmentation"
+    action="store_true")
     args = parser.parse_args()
     datap = args.dpath
     backb = args.bbone
     numa = args.angles
+    augs = args.a
 
     #NEED SOME CHECKS ON THE ARGS
 
     dev = torch.device("cuda:0")
-    ds = CornellDataset(datap, numa)
+    ds = CornellDataset(datap, augs, numa)
     net = graspn(backb, numa).to(dev)
 
     lr = 1e-4
