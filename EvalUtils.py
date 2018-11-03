@@ -12,8 +12,8 @@ import skimage
 import os
 
 class Display(CornellDataset):
-    def __init__(self, dpath, bbone, wpath, numa):
-        super().__init__(dpath, numa)
+    def __init__(self, dpath, bbone, wpath, numa, aug):
+        super().__init__(dpath, aug, numa)
         self.net = graspn(bbone, numa)
         self.net.load_state_dict(torch.load(wpath, map_location="cpu"))
         self.net.eval()
@@ -27,7 +27,7 @@ class Display(CornellDataset):
         preg, pcls = self.net(dataX)
         preds = pcls[:, 1] - pcls[:, 0]
         _, inds = torch.sort(preds , descending=True)
-        for ind in inds[:2]:
+        for ind in inds[:5]:
             t = preg[ind]
             #need to translate ind to 3d
             a = ind // (self.anum**2)
