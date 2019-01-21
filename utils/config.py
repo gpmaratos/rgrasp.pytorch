@@ -1,3 +1,6 @@
+def build_config(dpath, b_size, nn_cfg):
+    return Configuration(dpath, b_size, nn_cfg)
+
 class Configuration:
     """
     Configuration. Class that encapsulates all the options for training
