@@ -24,4 +24,5 @@ def train(model, cfg, start=1, end=100):
     )
 
     for bind, batch in enumerate(dl):
-        import pdb;pdb.set_trace()
+        inp = batch[0].to(dev)
+        model(inp, batch[1])
