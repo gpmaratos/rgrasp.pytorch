@@ -14,13 +14,16 @@ class GeneralRCNN(nn.Module):
     """
     def __init__(self, cfg):
         super(GeneralRCNN, self).__init__()
+        # to calculate the number of anchors along a dimension
+        # divide the size of the image by 32 (must be divisible?)
+        # 32 comes from the ResNet50 backbone
+        # have image dimensions specified in the config?
         backbone = build_backbone(cfg)
         head = build_head(cfg)
         self.head = head
         self.backbone = backbone
 
-    def forward(self, img):
+    def forward(self, img, targets=None):
         #loss calculation needs fixing (need to calculate final loss)
         features = self.backbone(img)
-        #needs fixing for ghead
-        return reg_scores, reg_loss, cls_scores, cls_loss
+        import pdb;pdb.set_trace()
