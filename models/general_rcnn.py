@@ -1,6 +1,6 @@
 from torch import nn
 from models.backbone import build_backbone
-from models.combined_head import build_head
+from models.head.combined_head import build_head
 
 def build_RCNN(cfg):
     return GeneralRCNN(cfg)
@@ -26,4 +26,4 @@ class GeneralRCNN(nn.Module):
     def forward(self, img, targets=None):
         #loss calculation needs fixing (need to calculate final loss)
         features = self.backbone(img)
-        import pdb;pdb.set_trace()
+        preds, loss = self.head(features, targets)
