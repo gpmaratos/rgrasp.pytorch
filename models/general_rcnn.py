@@ -27,3 +27,4 @@ class GeneralRCNN(nn.Module):
         #loss calculation needs fixing (need to calculate final loss)
         features = self.backbone(img)
         preds, loss = self.head(features, targets)
+        return preds, loss
