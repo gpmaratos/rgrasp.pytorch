@@ -1,5 +1,5 @@
-def build_config(dpath, b_size, nn_cfg):
-    return Configuration(dpath, b_size, nn_cfg)
+def build_config(dpath, dev, b_size, nn_cfg):
+    return Configuration(dpath, dev, b_size, nn_cfg)
 
 class Configuration:
     """
@@ -9,6 +9,9 @@ class Configuration:
     Arguments:
         dpath (string): path to the folder containing all of the
             example images
+
+        dev (torch.device): object which defines the device where memory
+            components will go
 
         b_size (int): how many examples will be part of a batch, which
             will depend on how much memory you wish to allocate at once
@@ -26,8 +29,16 @@ class Configuration:
 
             cls_feat (int): number of features for middle layer of
                 classification head
+
+            balance_factor (int): defines the factor of negative examples
+                to positive examples. integers greater than or equal to
+                one.
+
+            alpha (float): weight factor on regression component of loss
+                function
     """
-    def __init__(self, dpath, b_size, nn_cfg):
+    def __init__(self, dpath, dev, b_size, nn_cfg):
         self.dpath = dpath
+        self.dev = dev
         self.b_size = b_size
         self.nn_cfg = nn_cfg
