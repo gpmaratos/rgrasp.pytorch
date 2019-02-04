@@ -1,6 +1,7 @@
 import os
 import skimage
 import numpy as np
+import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 from torch.utils.data import Dataset
 from utils.bbox import BoundingBoxList
@@ -36,8 +37,14 @@ class Visualizer(Dataset):
         bboxes = BoundingBoxList(f)
         return iarr, bboxes
 
-    def show_ground_truth(self, ind):
-        self.__getitem__(ind)
+    def show_ground_truth(self, iarr, bboxes):
+        img = Image.fromarray(iarr)
+        draw = ImageDraw.Draw(img)
+        for rec in bboxes.irecs:
+            draw.line(rec[:2], fill=(200, 0, 0))
+            draw.line(rec[1:], fill=(0, 0, 0))
+        plt.imshow(img)
+        plt.show()
 
     def prepare(self):
         pass
