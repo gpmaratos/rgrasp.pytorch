@@ -48,17 +48,6 @@ class BoundingBoxList:
         else:
             xhat_a = rec[0][0] - rec[1][0]
             yhat_a = rec[0][1] - rec[1][1]
-        if rec[0][0] < rec[-1][0]:
-            xhat_b = rec[-1][0] - rec[0][0]
-            yhat_b = rec[-1][1] - rec[0][1]
-        else:
-            xhat_b = rec[0][0] - rec[-1][0]
-            yhat_b = rec[0][1] - rec[-1][1]
-
         dist_a = math.sqrt(xhat_a**2 + yhat_a**2)
-        dist_b = math.sqrt(xhat_b**2 + yhat_b**2)
-        if dist_b < dist_a:
-            ang = math.acos(yhat_a/dist_a)
-        else:
-            ang = math.acos(yhat_b/dist_b)
+        ang = math.acos(yhat_a/dist_a)
         return (x, y, ang)
