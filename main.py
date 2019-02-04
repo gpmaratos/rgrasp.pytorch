@@ -34,8 +34,7 @@ def main():
         'b_size':15,
         'bbone_type':'resnet50',
         'num_ang':4,
-        'reg_feat':100,
-        'cls_feat':100,
+        'h_feat':100,
         'balance_factor':2,
         'alpha':2.,
     }

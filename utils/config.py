@@ -21,11 +21,7 @@ class Configuration:
 
         num_ang (int): the number of angles at one position
 
-        reg_feat (int): number of features for middle layer of
-            regression head
-
-        cls_feat (int): number of features for middle layer of
-            classification head
+        h_feat (int): number of features for middle layer of the head
 
         balance_factor (int): defines the factor of negative examples
             to positive examples. integers greater than or equal to
@@ -41,7 +37,6 @@ class Configuration:
         self.b_size = cfg_dict['b_size']
         self.bbone_type = cfg_dict['bbone_type']
         self.num_ang = cfg_dict['num_ang']
-        self.reg_feat = cfg_dict['reg_feat']
-        self.cls_feat = cfg_dict['cls_feat']
+        self.h_feat = cfg_dict['h_feat']
         self.balance_factor = cfg_dict['balance_factor']
         self.alpha = cfg_dict['alpha']
