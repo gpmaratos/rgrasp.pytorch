@@ -4,14 +4,16 @@ from models.general_rcnn import build_RCNN
 from visualize.vis import build_visualizer
 from utils.config import build_config
 from engine.trainer import train
+from engine.visualizer import visualize
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', type=str,
         help='train with given path to data')
+    parser.add_argument('--vis', type=str,
+        help='visualize with given path to data')
     args = parser.parse_args()
 
-    dpath = args.train
     b_size = 15
 
     print('Beginning Training')
@@ -30,12 +32,18 @@ def main():
         'balance_factor':2,
         'alpha':2.,
     }
-    cfg = build_config(dpath, dev, b_size, nn_cfg)
-
-    model = build_RCNN(cfg)
 
     if args.train:
+        dpath = args.train
+        cfg = build_config(dpath, dev, b_size, nn_cfg)
+        model = build_RCNN(cfg)
         train(model, cfg, end=1000)
+
+    if args.vis:
+        dpath = args.vis
+        cfg = build_config(dpath, dev, b_size, nn_cfg)
+        visualizer = build_visualizer(dpath)
+        visualize(visualizer, cfg)
 
 if __name__ == "__main__":
     main()
