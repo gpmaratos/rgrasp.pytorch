@@ -6,8 +6,8 @@ from torch.utils.data import Dataset
 from utils.bbox import BoundingBoxList
 from torchvision.transforms import Normalize
 
-def build_dataset(cfg):
-    return CornellDataset(cfg.dpath)
+def build_dataset(cfg, train = True):
+    return CornellDataset(cfg.dpath, train)
 
 class CornellDataset(Dataset):
     """
@@ -20,7 +20,7 @@ class CornellDataset(Dataset):
             example images
     """
 
-    def __init__(self, dpath, train = True):
+    def __init__(self, dpath, train):
         index = list(range(100, 950)) + list(range(1000, 1035))
         del index[32]; del index[64]
         index = np.array(index, dtype=int)
@@ -45,6 +45,6 @@ class CornellDataset(Dataset):
         bboxes = BoundingBoxList(f)
         #apply transformations here
         if self.train:
-            xtensor = torch.tensor(iarr).permute(2, 0, 1).float()
-            xtensor = self.normalize(xtensor)
-        return xtensor, bboxes
+            iarr = torch.tensor(iarr).permute(2, 0, 1).float()
+            iarr = self.normalize(iarr)
+        return iarr, bboxes
