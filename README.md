@@ -17,7 +17,11 @@ and will use a GPU if available.
 Current list of Dependencies:
 
 python 3.6 or greater
-pytorch
-scikit-image
-numpy
+
 torchvision (for the pretrained model)
+
+pytorch
+
+scikit-image
+
+numpy
