@@ -21,7 +21,7 @@ class CombinedHead(nn.Module):
 
     def __init__(self, cfg):
         super(CombinedHead, self).__init__()
-        reg_feat = cfg.reg_features
+        reg_feat = cfg.reg_feat
         layer0 = Conv2d(2048, reg_feat, 3, padding=1)
         layer1 = Conv2d(reg_feat, 4*cfg.num_ang, 1)
         b_sampler = build_balanced_sampler(cfg)
