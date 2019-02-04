@@ -1,10 +1,9 @@
 import torch
 import argparse
 from models.general_rcnn import build_RCNN
-from visualize.vis import build_visualizer
 from utils.config import build_config
 from engine.trainer import train
-from engine.visualizer import visualize
+from engine.inference import infer
 
 def main():
     #FIX ORDERING SO CONFIG IS NOT CREATED TWICE
@@ -14,9 +13,8 @@ def main():
     parser.add_argument('-t',
         help='train a new model',
         action='store_true')
-    parser.add_argument('-i',
-        help='run inference',
-        action='store_true')
+    parser.add_argument('--inf', type=str,
+        help='path to weight file')
 
     args = parser.parse_args()
 
@@ -40,10 +38,16 @@ def main():
     }
 
     cfg = build_config(cfg_dict)
+    model = build_RCNN(cfg)
 
     if args.t:
-        model = build_RCNN(cfg)
         train(model, cfg)
+
+    if args.inf:
+        model.load_state_dict(
+            torch.load(args.inf, map_location='cpu')
+        )
+        infer(model, cfg)
 
 if __name__ == "__main__":
     main()
