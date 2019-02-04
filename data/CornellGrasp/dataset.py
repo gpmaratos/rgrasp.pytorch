@@ -20,7 +20,7 @@ class CornellDataset(Dataset):
             example images
     """
 
-    def __init__(self, dpath):
+    def __init__(self, dpath, train = True):
         index = list(range(100, 950)) + list(range(1000, 1035))
         del index[32]; del index[64]
         index = np.array(index, dtype=int)
@@ -28,6 +28,7 @@ class CornellDataset(Dataset):
             mean=[0.485, 0.456, 0.406] ,std=[0.229, 0.224, 0.225]
         )
 
+        self.train = train
         self.dpath = dpath
         self.index = index
         self.normalize = normalize
@@ -43,6 +44,7 @@ class CornellDataset(Dataset):
             f = f.read().split("\n")[:-1]
         bboxes = BoundingBoxList(f)
         #apply transformations here
-        xtensor = torch.tensor(iarr).permute(2, 0, 1).float()
-        xtensor = self.normalize(xtensor)
+        if self.train:
+            xtensor = torch.tensor(iarr).permute(2, 0, 1).float()
+            xtensor = self.normalize(xtensor)
         return xtensor, bboxes
