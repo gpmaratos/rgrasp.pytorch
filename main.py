@@ -1,6 +1,7 @@
 import torch
 import argparse
 from models.general_rcnn import build_RCNN
+from visualize.vis import build_visualizer
 from utils.config import build_config
 from engine.trainer import train
 
@@ -31,9 +32,10 @@ def main():
     }
     cfg = build_config(dpath, dev, b_size, nn_cfg)
 
+    model = build_RCNN(cfg)
+
     if args.train:
-        model = build_RCNN(cfg)
-        train(model, cfg)
+        train(model, cfg, end=1000)
 
 if __name__ == "__main__":
     main()
