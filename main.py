@@ -21,7 +21,7 @@ def main():
         dev = torch.device('cuda:1')
         print('Cuda detected, using GPU')
     else:
-        dev = torch.dev('cpu')
+        dev = torch.device('cpu')
         print('No cuda detected, using CPU')
 
     nn_cfg = {
