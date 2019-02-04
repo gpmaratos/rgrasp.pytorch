@@ -19,6 +19,7 @@ class BoundingBoxList:
                 for i in range(0, len(bbox_list), 4)
         ]
         ibboxes = [self.get_tuple(rec) for rec in irecs]
+        self.irecs = irecs
         self.ibboxes = ibboxes
 
     def get_coord(self, f):
