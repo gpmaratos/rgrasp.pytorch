@@ -7,14 +7,18 @@ from engine.trainer import train
 from engine.visualizer import visualize
 
 def main():
+    #FIX ORDERING SO CONFIG IS NOT CREATED TWICE
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train', type=str,
-        help='train with given path to data')
-    parser.add_argument('--vis', type=str,
-        help='visualize with given path to data')
-    args = parser.parse_args()
+    parser.add_argument('--dpath', type=str,
+        help='path to data')
+    parser.add_argument('-t',
+        help='train a new model',
+        action='store true')
+    parser.add_argument('-i',
+        help='run inference',
+        action='store true')
 
-    b_size = 15
+    args = parser.parse_args()
 
     print('Beginning Training')
     if torch.cuda.is_available():
@@ -24,7 +28,10 @@ def main():
         dev = torch.device('cpu')
         print('No cuda detected, using CPU')
 
-    nn_cfg = {
+    cfg_dict = {
+        'dpath':args.dpath,
+        'dev':dev,
+        'b_size':15,
         'bbone_type':'resnet50',
         'num_ang':4,
         'reg_features':100,
@@ -33,17 +40,11 @@ def main():
         'alpha':2.,
     }
 
-    if args.train:
-        dpath = args.train
-        cfg = build_config(dpath, dev, b_size, nn_cfg)
-        model = build_RCNN(cfg)
-        train(model, cfg, end=1000)
+    cfg = build_config(cfg_dict)
 
-    if args.vis:
-        dpath = args.vis
-        cfg = build_config(dpath, dev, b_size, nn_cfg)
-        visualizer = build_visualizer(dpath)
-        visualize(visualizer, cfg)
+    if args.train:
+        model = build_RCNN(cfg)
+        train(model, cfg)
 
 if __name__ == "__main__":
     main()

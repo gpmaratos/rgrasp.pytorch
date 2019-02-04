@@ -1,5 +1,5 @@
-def build_config(dpath, dev, b_size, nn_cfg):
-    return Configuration(dpath, dev, b_size, nn_cfg)
+def build_config(cfg_dict):
+    return Configuration(cfg_dict)
 
 class Configuration:
     """
@@ -17,28 +17,31 @@ class Configuration:
             will depend on how much memory you wish to allocate at once
             to the input images
 
-        nn_cfg (dict): configuration for the RCNN network which should have
-            the following fields defined:
+        bbone_type (string): defines which backbone to use
 
-            bbone_type (string): defines which backbone to use
+        num_ang (int): the number of angles at one position
 
-            num_ang (int): the number of angles at one position
+        reg_feat (int): number of features for middle layer of
+            regression head
 
-            reg_feat (int): number of features for middle layer of
-                regression head
+        cls_feat (int): number of features for middle layer of
+            classification head
 
-            cls_feat (int): number of features for middle layer of
-                classification head
+        balance_factor (int): defines the factor of negative examples
+            to positive examples. integers greater than or equal to
+            one.
 
-            balance_factor (int): defines the factor of negative examples
-                to positive examples. integers greater than or equal to
-                one.
-
-            alpha (float): weight factor on regression component of loss
-                function
+        alpha (float): weight factor on regression component of loss
+            function
     """
-    def __init__(self, dpath, dev, b_size, nn_cfg):
-        self.dpath = dpath
-        self.dev = dev
-        self.b_size = b_size
-        self.nn_cfg = nn_cfg
+
+    def __init__(self, cfg_dict):
+        self.dpath = cfg_dict['dpath']
+        self.dev = cfg_dict['dev']
+        self.b_size = cfg_dict['b_size']
+        self.bbone_type = cfg_dict['bbone_type']
+        self.num_ang = cfg_dict['num_ang']
+        self.reg_feat = cfg_dict['reg_feat']
+        self.cls_feat = cfg_dict['cls_feat']
+        self.balance_factor = cfg_dict['balance_factor']
+        self.alpha = cfg_dict['alpha']

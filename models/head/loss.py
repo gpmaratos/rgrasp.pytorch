@@ -5,8 +5,8 @@ class Loss:
     Loss metric. Calculates the final loss.
     """
     def __init__(self, cfg):
-        balance_factor = cfg.nn_cfg['balance_factor']
-        alpha = cfg.nn_cfg['alpha']
+        balance_factor = cfg.balance_factor
+        alpha = cfg.alpha
         self.balance_factor = balance_factor
         self.alpha = alpha
 

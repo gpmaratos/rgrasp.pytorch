@@ -22,7 +22,7 @@ class BalancedSampler:
         dev = cfg.dev
         stride_factor = torch.tensor([gt_extractor.pixel_stride,
             gt_extractor.pixel_stride, gt_extractor.angle_stride]).to(dev)
-        balance_factor = cfg.nn_cfg['balance_factor']
+        balance_factor = cfg.balance_factor
         self.gt_extractor = gt_extractor
         self.stride_factor = stride_factor
         self.pos_inds = []
