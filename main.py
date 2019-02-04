@@ -13,10 +13,10 @@ def main():
         help='path to data')
     parser.add_argument('-t',
         help='train a new model',
-        action='store true')
+        action='store_true')
     parser.add_argument('-i',
         help='run inference',
-        action='store true')
+        action='store_true')
 
     args = parser.parse_args()
 
@@ -34,15 +34,15 @@ def main():
         'b_size':15,
         'bbone_type':'resnet50',
         'num_ang':4,
-        'reg_features':100,
-        'cls_features':100,
+        'reg_feat':100,
+        'cls_feat':100,
         'balance_factor':2,
         'alpha':2.,
     }
 
     cfg = build_config(cfg_dict)
 
-    if args.train:
+    if args.t:
         model = build_RCNN(cfg)
         train(model, cfg)
 
