@@ -1,4 +1,4 @@
 def visualize(visualizer, cfg):
     for ind, inp in enumerate(visualizer):
-        img, bboxes = inp
-        import pdb;pdb.set_trace()
+        iarr, bboxes = inp
+        visualizer.show_ground_truth(iarr, bboxes)
