@@ -37,6 +37,7 @@ class CombinedHead(nn.Module):
         x = self.layer0(features)
         x = self.layer1(x)
         x = self.sigm(x)
+        x = x.permute(0, 2, 3, 1)
         if self.training:
             p_reg, p_cls, t_reg, t_cls, P = self.b_sampler(x, targets)
             loss = self.loss_fun(p_reg, p_cls, t_reg, t_cls, P)

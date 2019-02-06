@@ -31,7 +31,6 @@ class GeneralRCNN(nn.Module):
         }
 
     def forward(self, img, targets=None):
-        #loss calculation needs fixing (need to calculate final loss)
         features = self.backbone(img)
         preds, loss = self.head(features, targets)
         return preds, loss
