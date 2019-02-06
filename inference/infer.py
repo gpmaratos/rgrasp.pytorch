@@ -44,4 +44,8 @@ class Infer:
                 for k in range(3, pred.shape[3], self.num_ang):
                     prediction = pred[0, i, j, k-3:k+1]
                     if prediction[3] > 0.7:
-                        preds.append(prediction)
+                        x = i*self.pstride + prediction[0].item()*self.pstride
+                        y = j*self.pstride + prediction[1].item()*self.pstride
+                        t = k/4*self.astride + prediction[2].item()*self.astride
+                        preds.append((x, y, t))
+        return preds
