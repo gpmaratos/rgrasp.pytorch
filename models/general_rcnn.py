@@ -23,6 +23,13 @@ class GeneralRCNN(nn.Module):
         self.head = head
         self.backbone = backbone
 
+    def get_characteristics(self):
+        #I do not like where these characteristics lie in the model
+        return {
+            'pstride': self.head.b_sampler.gt_extractor.pixel_stride,
+            'astride': self.head.b_sampler.gt_extractor.angle_stride,
+        }
+
     def forward(self, img, targets=None):
         #loss calculation needs fixing (need to calculate final loss)
         features = self.backbone(img)
