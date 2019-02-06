@@ -43,6 +43,5 @@ class Infer:
             for j in range(pred.shape[2]):
                 for k in range(3, pred.shape[3], self.num_ang):
                     prediction = pred[0, i, j, k-3:k+1]
-                    if prediction[3] > 0.5:
+                    if prediction[3] > 0.7:
                         preds.append(prediction)
-        import pdb;pdb.set_trace()
