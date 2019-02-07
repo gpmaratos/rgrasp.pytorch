@@ -12,7 +12,7 @@ def train(model, cfg, start=1, end=101):
     opt = optim.SGD([
         {'params': model.backbone.parameters(), 'lr':1e-5},
         {'params': model.head.parameters()}
-        ],lr=1e-2, momentum=0.9
+        ],lr=1e-3, momentum=0.9, weight_decay=1e-4
     )
 
     for i in range(start, end):
