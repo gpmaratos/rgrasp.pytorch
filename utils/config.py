@@ -1,5 +1,7 @@
-def build_config(cfg_dict):
-    return Configuration(cfg_dict)
+import torch
+
+def build_config(d_path, c_path, w_path):
+    return Configuration(d_path, c_path, w_path)
 
 class Configuration:
     """
@@ -31,12 +33,51 @@ class Configuration:
             function
     """
 
-    def __init__(self, cfg_dict):
-        self.dpath = cfg_dict['dpath']
-        self.dev = cfg_dict['dev']
-        self.b_size = cfg_dict['b_size']
-        self.bbone_type = cfg_dict['bbone_type']
-        self.num_ang = cfg_dict['num_ang']
-        self.h_feat = cfg_dict['h_feat']
-        self.balance_factor = cfg_dict['balance_factor']
-        self.alpha = cfg_dict['alpha']
+    def read_conf_file(self, c_path):
+        #algorithm is O(n^2) so don't have a large config file
+        with open(c_path) as f:
+            c_file = f.read().split('\n')[:-1]
+        for field in c_file:
+            field = field.split(':')
+            if field[0] == 'b_size':
+                self.b_size = int(field[1])
+            if field[0] == 'n_ang':
+                self.n_ang = int(field[1])
+            if field[0] == 'h_feat':
+                self.h_feat = int(field[1])
+            if field[0] == 'b_factor':
+                self.b_factor = int(field[1])
+            if field[0] == 'alpha':
+                self.alpha = float(field[1])
+
+        if not hasattr(self, 'b_size'):
+            self.b_size = 1
+        if not hasattr(self, 'n_ang'):
+            self.n_ang = 4
+        if not hasattr(self, 'h_feat'):
+            self.h_feat = 100
+        if not hasattr(self, 'b_factor'):
+            self.b_factor = 2
+        if not hasattr(self, 'alpha'):
+            self.alpha = 2.
+
+    def print_config(self):
+        print("Configuration:")
+        print("\tb_size: %d"%(self.b_size))
+        print("\tn_ang: %d"%(self.n_ang))
+        print("\th_feat: %d"%(self.h_feat))
+        print("\tb_factor: %d"%(self.b_factor))
+        print("\talpha: %f"%(self.alpha))
+        print("\tDevice: ", self.dev)
+        print("\td_path: %s"%(self.d_path))
+        print("\tw_path: %s\n"%(self.w_path))
+
+    def __init__(self, d_path, c_path, w_path):
+        self.d_path = d_path
+        self.w_path = w_path
+        self.read_conf_file(c_path)
+        if torch.cuda.is_available():
+            self.dev = torch.device('cuda:0')
+        else:
+            self.dev = torch.device('cpu')
+        self.print_config()

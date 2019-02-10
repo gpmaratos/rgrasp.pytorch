@@ -22,7 +22,7 @@ class Infer:
         chars = model.get_characteristics()
         pstride = chars['pstride']
         astride = chars['astride']
-        num_ang = cfg.num_ang
+        num_ang = cfg.n_ang
 
         self.normalize = normalize
         self.num_ang = num_ang

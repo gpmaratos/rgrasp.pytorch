@@ -21,7 +21,7 @@ class GTExtractor:
     def __init__(self, cfg):
         super(GTExtractor, self).__init__()
         pixel_stride = 32
-        angle_stride = math.radians(180)/cfg.num_ang
+        angle_stride = math.radians(180)/cfg.n_ang
         self.pixel_stride = pixel_stride
         self.angle_stride = angle_stride
         self.anchor_points = []

@@ -7,7 +7,7 @@ from utils.bbox import BoundingBoxList
 from torchvision.transforms import Normalize
 
 def build_dataset(cfg, train = True):
-    return CornellDataset(cfg.dpath, train)
+    return CornellDataset(cfg.d_path, train)
 
 class CornellDataset(Dataset):
     """
@@ -16,11 +16,11 @@ class CornellDataset(Dataset):
     because they have nans for some fields.
 
     Arguments:
-        dpath (string): path to the folder containing all of the
+        d_path (string): path to the folder containing all of the
             example images
     """
 
-    def __init__(self, dpath, train):
+    def __init__(self, d_path, train):
         index = list(range(100, 950)) + list(range(1000, 1035))
         del index[32]; del index[64]
         index = np.array(index, dtype=int)
@@ -29,7 +29,7 @@ class CornellDataset(Dataset):
         )
 
         self.train = train
-        self.dpath = dpath
+        self.d_path = d_path
         self.index = index
         self.normalize = normalize
 
@@ -37,7 +37,7 @@ class CornellDataset(Dataset):
         return len(self.index)
 
     def __getitem__(self, idx):
-        ipref = os.path.join(self.dpath, "pcd%04d"%(self.index[idx]))
+        ipref = os.path.join(self.d_path, "pcd%04d"%(self.index[idx]))
         ipath = ipref + "r.png"
         iarr = skimage.io.imread(ipath)
         with open(ipref+"cpos.txt") as f:

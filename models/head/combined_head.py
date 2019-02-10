@@ -23,7 +23,7 @@ class CombinedHead(nn.Module):
         super(CombinedHead, self).__init__()
         h_feat = cfg.h_feat
         layer0 = Conv2d(2048, h_feat, 3, padding=1)
-        layer1 = Conv2d(h_feat, 4*cfg.num_ang, 1)
+        layer1 = Conv2d(h_feat, 4*cfg.n_ang, 1)
         b_sampler = build_balanced_sampler(cfg)
         sigm = sigmoid
         loss_fun = Loss(cfg)
