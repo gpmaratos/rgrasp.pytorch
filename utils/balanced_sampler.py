@@ -22,13 +22,13 @@ class BalancedSampler:
         dev = cfg.dev
         stride_factor = torch.tensor([gt_extractor.pixel_stride,
             gt_extractor.pixel_stride, gt_extractor.angle_stride]).to(dev)
-        balance_factor = cfg.balance_factor
+        b_factor = cfg.b_factor
         self.gt_extractor = gt_extractor
         self.stride_factor = stride_factor
         self.pos_inds = []
         self.pos_examples = 0
         self.dev = dev
-        self.balance_factor = balance_factor
+        self.b_factor = b_factor
 
     def clear_state(self):
         self.pos_inds = []
@@ -63,7 +63,7 @@ class BalancedSampler:
         #I will sample random values not in the positive examples
         #i suspect this is the slowest part of the algorithm
         inds = []
-        while len(inds) < self.balance_factor*len(targs):
+        while len(inds) < self.b_factor*len(targs):
             sample = (randint(0, preds.shape[0]-1),
                         randint(0, preds.shape[1]-1),
                         randint(0, (preds.shape[2]//4)-1))
@@ -77,7 +77,7 @@ class BalancedSampler:
         targ_reg = [torch.tensor(target[1]) for target in targets]
         targ_reg = torch.cat(targ_reg, dim=0)
         targ_cls = torch.zeros(self.pos_examples+\
-            self.pos_examples*self.balance_factor)
+            self.pos_examples*self.b_factor)
         targ_cls[:self.pos_examples] = 1.
         return targ_reg, targ_cls
 
