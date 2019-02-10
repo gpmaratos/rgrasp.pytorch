@@ -30,9 +30,10 @@ class GTExtractor:
     def extract_anchor(self, bbox):
         x = bbox[0] / self.pixel_stride
         y = bbox[1] / self.pixel_stride
-        t = bbox[2] / self.angle_stride
+        ang = round(bbox[2], 2)
+        #this is required because of rounding
+        t = ang / self.angle_stride
         self.anchor_points.append((int(x), int(y), int(t)))
-
         x_off = bbox[0] % self.pixel_stride
         y_off = bbox[1] % self.pixel_stride
         t_off = bbox[2] % self.angle_stride
