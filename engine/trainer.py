@@ -1,3 +1,7 @@
+import os
+import datetime
+import torch
+import pickle
 from torch import optim
 from data.CornellGrasp.dataloader import build_data_loader
 
@@ -28,4 +32,9 @@ def train(model, cfg, start=1, end=101):
             opt.step()
         print(" Avg Loss: %f"%(sum(loss_history)/len(dl)))
     print('')
-    import pdb;pdb.set_trace()
+    m_pref = 'model-' + str(datetime.date.today())
+    w_path = os.path.join(cfg.w_path, m_pref+'.pt')
+    print("Saving Model at: %s"%(w_path))
+    torch.save(model.state_dict(), w_path)
+    with open(os.path.join(cfg.w_path, m_pref+'-cfg.pkl'), 'wb') as f:
+        pickle.dump(cfg, f)
