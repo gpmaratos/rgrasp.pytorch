@@ -35,6 +35,7 @@ def train(model, cfg, start=1, end=101):
     m_pref = 'model-' + str(datetime.date.today())
     w_path = os.path.join(cfg.w_path, m_pref+'.pt')
     print("Saving Model at: %s"%(w_path))
+    #maybe I should convert the model to cpu before serializing
     torch.save(model.state_dict(), w_path)
     with open(os.path.join(cfg.w_path, m_pref+'-cfg.pkl'), 'wb') as f:
         pickle.dump(cfg, f)
