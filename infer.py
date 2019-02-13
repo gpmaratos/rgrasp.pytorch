@@ -1,6 +1,7 @@
 import argparse
 from utils.config import build_config
 from engine.inference import infer
+from engine.gt import gt
 from models.general_rcnn import build_RCNN
 
 def main():
@@ -18,7 +19,7 @@ def main():
     cfg = build_config(args.DPATH, args.CPATH, args.WPATH)
 
     if args.g:
-
+        gt(cfg)
         return
 
     model = build_RCNN(cfg)
