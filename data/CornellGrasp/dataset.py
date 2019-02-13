@@ -5,9 +5,10 @@ import numpy as np
 from torch.utils.data import Dataset
 from utils.bbox import BoundingBoxList
 from torchvision.transforms import Normalize
+from utils.augment_image import augment
 
-def build_dataset(cfg, train = True):
-    return CornellDataset(cfg.d_path, train)
+def build_dataset(cfg, train = True, aug = True):
+    return CornellDataset(cfg.d_path, train, aug)
 
 class CornellDataset(Dataset):
     """
@@ -20,7 +21,7 @@ class CornellDataset(Dataset):
             example images
     """
 
-    def __init__(self, d_path, train):
+    def __init__(self, d_path, train, aug):
         index = list(range(100, 950)) + list(range(1000, 1035))
         del index[32]; del index[64]
         index = np.array(index, dtype=int)
@@ -29,6 +30,7 @@ class CornellDataset(Dataset):
         )
 
         self.train = train
+        self.aug = aug
         self.d_path = d_path
         self.index = index
         self.normalize = normalize
@@ -43,7 +45,8 @@ class CornellDataset(Dataset):
         with open(ipref+"cpos.txt") as f:
             f = f.read().split("\n")[:-1]
         bboxes = BoundingBoxList(f)
-        #apply transformations here
+        if self.aug:
+            iarr, bboxes = augment(iarr, bboxes)
         if self.train:
             iarr = torch.tensor(iarr).permute(2, 0, 1).float()
             iarr = self.normalize(iarr)
