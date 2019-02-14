@@ -49,6 +49,10 @@ class Configuration:
                 self.b_factor = int(field[1])
             if field[0] == 'alpha':
                 self.alpha = float(field[1])
+            if field[0] == 'x_dim':
+                self.x_dim = int(field[1])
+            if field[0] == 'y_dim':
+                self.y_dim = int(field[1])
 
         if not hasattr(self, 'b_size'):
             self.b_size = 1
@@ -60,6 +64,10 @@ class Configuration:
             self.b_factor = 2
         if not hasattr(self, 'alpha'):
             self.alpha = 2.
+        if not hasattr(self, 'x_dim'):
+            self.x_dim = 320
+        if not hasattr(self, 'y_dim'):
+            self.y_dim = 320
 
     def print_config(self):
         print("Configuration:")
@@ -70,7 +78,9 @@ class Configuration:
         print("\talpha: %f"%(self.alpha))
         print("\tDevice: ", self.dev)
         print("\td_path: %s"%(self.d_path))
-        print("\tw_path: %s\n"%(self.w_path))
+        print("\tw_path: %s"%(self.w_path))
+        print("\tx_dim: %s"%(self.x_dim))
+        print("\ty_dim: %s\n"%(self.y_dim))
 
     def __init__(self, d_path, c_path, w_path):
         self.d_path = d_path
