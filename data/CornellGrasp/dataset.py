@@ -5,10 +5,10 @@ import numpy as np
 from torch.utils.data import Dataset
 from utils.bbox import BoundingBoxList
 from torchvision.transforms import Normalize
-from utils.augment_image import augment
+from utils.augment_image import build_augmenter
 
 def build_dataset(cfg, train = True, aug = True):
-    return CornellDataset(cfg.d_path, train, aug)
+    return CornellDataset(cfg, train, aug)
 
 class CornellDataset(Dataset):
     """
@@ -21,19 +21,25 @@ class CornellDataset(Dataset):
             example images
     """
 
-    def __init__(self, d_path, train, aug):
+    def __init__(self, cfg, train, aug):
+        d_path = cfg.d_path
         index = list(range(100, 950)) + list(range(1000, 1035))
         del index[32]; del index[64]
         index = np.array(index, dtype=int)
         normalize = Normalize(
             mean=[0.485, 0.456, 0.406] ,std=[0.229, 0.224, 0.225]
         )
+        if aug:
+            x_dim = cfg.x_dim
+            y_dim = cfg.y_dim
+            augment = build_augmenter(x_dim, y_dim)
+            self.augment = augment
 
         self.train = train
-        self.aug = aug
         self.d_path = d_path
         self.index = index
         self.normalize = normalize
+        self.aug = aug
 
     def __len__(self):
         return len(self.index)
@@ -46,7 +52,7 @@ class CornellDataset(Dataset):
             f = f.read().split("\n")[:-1]
         bboxes = BoundingBoxList(f)
         if self.aug:
-            iarr, bboxes = augment(iarr, bboxes)
+            iarr, bboxes = self.augment(iarr, bboxes)
         if self.train:
             iarr = torch.tensor(iarr).permute(2, 0, 1).float()
             iarr = self.normalize(iarr)
