@@ -2,6 +2,7 @@ import math
 import random
 import numpy as np
 from skimage.transform import rotate
+from utils.display import display_pair
 
 def build_augmenter(x_dim, y_dim):
     return Augment(x_dim, y_dim)
@@ -21,8 +22,12 @@ class Augment:
     def translate_box(self, box):
         if self.flip_horz:
             x = box[0] - self.x_dim
+        else:
+            x = box[0]
         if self.flip_vert:
             y = box[1] - self.y_dim
+        else:
+            y = box[1]
         th = box[2] - self.theta
         return (x, y, th)
 
@@ -33,7 +38,8 @@ class Augment:
         """
 
         self.theta = round(random.uniform(self.min, self.max), 2)
-        n_image = rotate(n_image, self.theta, preserve_range=True)
+        temp_image = n_image
+        iarr = rotate(n_image, self.theta, preserve_range=True, order=0)
         if random.randint(0, 1):
             iarr = np.fliplr(iarr)
             self.flip_horz = True
@@ -43,7 +49,9 @@ class Augment:
             iarr = np.flipud(iarr)
             self.flip_vert = True
         else:
-            self.flip_horz = False
-        b_boxes.ibboxes = [self.translate_box(box)\
+            self.flip_vert = False
+        #b_boxes.ibboxes = [self.translate_box(box)\
+        temp_boxes = [self.translate_box(box)\
             for box in b_boxes.ibboxes]
-        return n_image, b_boxes
+        display_pair(temp_image, b_boxes, iarr, temp_boxes)
+        return iarr, b_boxes
