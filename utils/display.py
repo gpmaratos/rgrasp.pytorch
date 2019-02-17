@@ -10,8 +10,8 @@ def draw_tuple(draw, tup):
         fill=(0, 0, 200))
     alpha = math.cos(tup[2])*10
     beta = math.sin(tup[2])*10
-    x_ray = tup[0]+alpha
-    y_ray = tup[1]+beta
+    x_ray = tup[0]+beta
+    y_ray = tup[1]+alpha
     draw.line((tup[0], tup[1], x_ray, y_ray),
         fill=(0, 200, 0))
 
