@@ -19,16 +19,25 @@ class Augment:
         self.x_dim = x_dim
         self.y_dim = y_dim
 
-    def translate_box(self, box):
-        if self.flip_horz:
-            x = box[0] - self.x_dim
-        else:
-            x = box[0]
-        if self.flip_vert:
-            y = box[1] - self.y_dim
-        else:
-            y = box[1]
-        th = box[2] - self.theta
+    def translate_box(self, box, flip_horz, flip_vert, theta):
+        ct = math.cos(theta)
+        st = math.sin(theta)
+        x = box[0] - self.x_dim/2
+        y = box[1] - self.y_dim/2
+        x = ct*x - st*y
+        y = st*x + ct*y
+        x += self.x_dim/2
+        y += self.y_dim/2
+        if flip_horz:
+            x = self.x_dim - x
+        if flip_vert:
+            y = self.y_dim - y
+        th = box[2] - theta
+        #normalize the angle if rotating pushes it beyond the range
+        if th < 0.0:
+            th += 3.14
+        if th > 3.14:
+            th -= 3.14
         return (x, y, th)
 
     def __call__(self, n_image, b_boxes):
@@ -37,21 +46,23 @@ class Augment:
         rotations.
         """
 
-        self.theta = round(random.uniform(self.min, self.max), 2)
+        theta = round(random.uniform(self.min, self.max), 2)
         temp_image = n_image
-        iarr = rotate(n_image, self.theta, preserve_range=True, order=0)
+        iarr = rotate(n_image, math.degrees(theta),
+            preserve_range=True, order=0)
+        theta *= -1
         if random.randint(0, 1):
             iarr = np.fliplr(iarr)
-            self.flip_horz = True
+            flip_horz = True
         else:
-            self.flip_horz = False
+            flip_horz = False
         if random.randint(0, 1):
             iarr = np.flipud(iarr)
-            self.flip_vert = True
+            flip_vert = True
         else:
-            self.flip_vert = False
+            flip_vert = False
         #b_boxes.ibboxes = [self.translate_box(box)\
-        temp_boxes = [self.translate_box(box)\
+        temp_boxes = [self.translate_box(box, flip_horz, flip_vert, theta)\
             for box in b_boxes.ibboxes]
         display_pair(temp_image, b_boxes, iarr, temp_boxes)
         return iarr, b_boxes
