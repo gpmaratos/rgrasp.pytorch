@@ -28,16 +28,11 @@ class Augment:
         y = st*x + ct*y
         x += self.x_dim/2
         y += self.y_dim/2
+        th = box[2]
         if flip_horz:
             x = self.x_dim - x
         if flip_vert:
             y = self.y_dim - y
-        th = box[2] - theta
-        #normalize the angle if rotating pushes it beyond the range
-        if th < 0.0:
-            th += 3.14
-        if th > 3.14:
-            th -= 3.14
         return (x, y, th)
 
     def __call__(self, n_image, b_boxes):
