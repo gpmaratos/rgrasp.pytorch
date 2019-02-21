@@ -19,11 +19,11 @@ class Augment:
         self.x_dim = x_dim
         self.y_dim = y_dim
 
-    def translate_box(self, box, flip_horz, flip_vert, theta):
+    def translate_box(self, box, flip_horz, flip_vert, x_dim, y_dim, theta):
         ct = math.cos(theta)
         st = math.sin(theta)
-        x = box[0] - self.x_dim/2
-        y = box[1] - self.y_dim/2
+        x = box[0] - x_dim/2
+        y = box[1] - y_dim/2
         x = ct*x - st*y
         y = st*x + ct*y
         x += self.x_dim/2
@@ -42,23 +42,29 @@ class Augment:
         """
 
         theta = round(random.uniform(self.min, self.max), 2)
+        x_dim, y_dim, _ = n_image.shape
         temp_image = n_image
         iarr = rotate(n_image, math.degrees(theta),
             preserve_range=True, order=0)
-        theta *= -1
-        if random.randint(0, 1):
-            iarr = np.fliplr(iarr)
-            flip_horz = True
-        else:
-            flip_horz = False
-        if random.randint(0, 1):
-            iarr = np.flipud(iarr)
-            flip_vert = True
-        else:
-            flip_vert = False
+#       comment this out until I know the rotation works
+#        theta *= -1
+#        if random.randint(0, 1):
+#            iarr = np.fliplr(iarr)
+#            flip_horz = True
+#        else:
+#            flip_horz = False
+#        if random.randint(0, 1):
+#            iarr = np.flipud(iarr)
+#            flip_vert = True
+#        else:
+#            flip_vert = False
         #b_boxes.ibboxes = [self.translate_box(box)\
-        temp_boxes = [self.translate_box(box, flip_horz, flip_vert, theta)\
-            for box in b_boxes.ibboxes]
+        flip_horz = False
+        flip_vert = False
+        temp_boxes = [
+            self.translate_box(box, flip_horz, flip_vert, x_dim, y_dim, theta)\
+            for box in b_boxes.ibboxes
+        ]
         display_pair(temp_image, b_boxes, iarr, temp_boxes)
         #should return b_boxes with ibboxes field modified
         return iarr, b_boxes
