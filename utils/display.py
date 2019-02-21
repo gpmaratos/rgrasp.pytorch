@@ -28,8 +28,8 @@ def display_pair(o_img, o_bbx, n_img, n_bbx):
 
         n_img = n_img.astype(np.uint8)
         _img = Image.fromarray(n_img)
-#        _draw = ImageDraw.Draw(_img)
-#        [draw_tuple(_draw, tup) for tup in n_bbx]
+        _draw = ImageDraw.Draw(_img)
+        [draw_tuple(_draw, tup) for tup in n_bbx]
 
         f, axarr = plt.subplots(2)
         axarr[0].imshow(img)
