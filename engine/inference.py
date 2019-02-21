@@ -1,5 +1,5 @@
 import numpy as np
-from inference.infer import Infer
+from utils.infer import Infer
 from data.CornellGrasp.dataset import build_dataset
 
 # Passing no data to inference means that inference is done with training
