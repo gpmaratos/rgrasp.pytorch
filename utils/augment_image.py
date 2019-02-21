@@ -60,4 +60,5 @@ class Augment:
         temp_boxes = [self.translate_box(box, flip_horz, flip_vert, theta)\
             for box in b_boxes.ibboxes]
         display_pair(temp_image, b_boxes, iarr, temp_boxes)
+        #should return b_boxes with ibboxes field modified
         return iarr, b_boxes
