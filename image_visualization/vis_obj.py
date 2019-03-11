@@ -34,21 +34,26 @@ class CGObject(Dataset):
         self.index = index
 
     def __len__(self):
-        return len(self.index)
+        return len(self.index_list)
 
     def get_img(self, idx):
-        ipref = os.path.join(self.d_path, 'pcd%04d'%(self.index[idx]))
+        ipref = os.path.join(self.d_path, 'pcd%04d'%(idx))
         ipath = ipref + 'r.png'
         iarr = imread(ipath)
         return iarr
 
     def __getitem__(self, idx):
-        
+        indices = self.index_list[idx]
+        imgs = [self.get_img(i) for i in indices]
+        return imgs
 
 def show_obj(inp):
     """
     show_obj. Function that displays images of an object in the dataset
     """
-    img = Image.fromarray(inp)
+    img = [Image.fromarray(i) for i in inp]
+    if len(img) == 2:
+        fig = plt.figure(figsize=(2, 1))
+        fig.add_subplot(
     plt.imshow(img)
     plt.show()
