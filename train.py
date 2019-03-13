@@ -1,6 +1,6 @@
 import torch
 import argparse
-from utils.config import build_config
+from structures.config import build_config
 from models.general_rcnn import build_RCNN
 from engine.trainer import train
 

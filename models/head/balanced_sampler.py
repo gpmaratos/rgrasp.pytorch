@@ -1,6 +1,6 @@
 import torch
 from random import randint
-from utils.gt_extractor import build_gt_extractor
+from data_processing.gt_extractor import build_gt_extractor
 
 def build_balanced_sampler(cfg):
     return BalancedSampler(cfg)

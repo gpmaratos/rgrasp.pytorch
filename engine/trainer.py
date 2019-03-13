@@ -3,7 +3,7 @@ import datetime
 import torch
 import pickle
 from torch import optim
-from data.CornellGrasp.dataloader import build_data_loader
+from data_processing.dataloader import build_data_loader
 
 def train(model, cfg, start=1, end=101):
     """

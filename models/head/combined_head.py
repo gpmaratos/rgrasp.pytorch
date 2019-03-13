@@ -2,7 +2,7 @@ from torch import nn
 from torch.nn import Conv2d
 from torch import sigmoid
 from models.head.loss import Loss
-from utils.balanced_sampler import build_balanced_sampler
+from models.head.balanced_sampler import build_balanced_sampler
 
 
 def build_head(cfg):
