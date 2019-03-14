@@ -45,7 +45,7 @@ class CornellDataset(Dataset):
             background_img = int(p_line[3].split('_')[1])
             if image_id >= 100 and image_id < 950 or\
                 image_id >= 1000 and image_id < 1035:
-                if not image_id in [135, 165]:
+                if not image_id in [132, 165]:
                     if obj_num in lookup_dict:
                         if not image_id in lookup_dict[obj_num]:
                             lookup_dict[obj_num].append(image_id)
