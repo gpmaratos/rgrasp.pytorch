@@ -14,9 +14,6 @@ I rely on pre-training, and carefully selected learning
 rates to mitigate this challenge. It currently trains,
 and will use a GPU if available.
 
-NOTE: I reorganized the directories so the paths to
-objects will be incorrect (temporary).
-
 Current list of Dependencies:
 
 python 3.6 or greater
