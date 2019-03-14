@@ -37,7 +37,7 @@ class GTExtractor:
         x_off = bbox[0] % self.pixel_stride
         y_off = bbox[1] % self.pixel_stride
         t_off = bbox[2] % self.angle_stride
-        self.offsets.append(( x_off, y_off, t_off))
+        self.offsets.append((x_off, y_off, t_off))
 
     def clear_points(self):
         self.anchor_points = []
