@@ -1,26 +1,25 @@
-import torch
 import argparse
-from structures.config import build_config
-from models.general_rcnn import build_RCNN
 from engine.trainer import train
 
 def main():
     """
-    Train a network. Configures the environment and calls the training
-    function.
+    Do inference on the Cornell Grasp dataset. Trains model using GD.
+
+    Command Line Arguments:
+        DPATH: path to the folder containing the data, z.txt, and background imgs
+        WPATH: path to folder which the model is saved after training
     """
 
     parser = argparse.ArgumentParser()
     parser.add_argument('DPATH', type=str,
-        help='path to data folder (Cornell Grasp)')
-    parser.add_argument('CPATH', type=str,
-        help='path to configuration file (see utils/config for details)')
+        help='path to data folder')
     parser.add_argument('WPATH', type=str,
-        help='path to where the network will be saved when done training')
+        help='path to weights folder (models are saved here)')
     args = parser.parse_args()
 
-    cfg = build_config(args.DPATH, args.CPATH, args.WPATH)
-    model = build_RCNN(cfg)
-    train(model, cfg)
+    d_path = args.DPATH
+    w_path = args.WPATH
+    batch_size = 3
+    train(d_path, w_path, batch_size)
 
 main()

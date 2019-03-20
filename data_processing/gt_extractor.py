@@ -1,8 +1,5 @@
 import math
 
-def build_gt_extractor(cfg):
-    return GTExtractor(cfg)
-
 class GTExtractor:
     """
     GTExtractor. Class which reads the targets object, which is a batch
@@ -15,13 +12,14 @@ class GTExtractor:
     That is where the magic number 32 comes from.
 
     Arguments:
-        cfg
+        n_ang (int): number of angles represented in the anchors
+
 
     """
-    def __init__(self, cfg):
+    def __init__(self, n_ang):
         super(GTExtractor, self).__init__()
         pixel_stride = 32
-        angle_stride = math.radians(180)/cfg.n_ang
+        angle_stride = math.radians(180)/n_ang
         self.pixel_stride = pixel_stride
         self.angle_stride = angle_stride
         self.anchor_points = []
