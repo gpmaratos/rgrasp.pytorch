@@ -1,10 +1,10 @@
 import torch
+from random import randint
 from torch import sigmoid
 from torch import nn
-from torch.nn import Sequential
+from torch.nn import Sequential, Conv2d
 from torchvision.models import resnet50
-from data_processing.gt_extractor import build_gt_extractor
-from torch.nn.functional import smooth_l1_loss, binary_cross_entropy
+from data_processing.gt_extractor import GTExtractor
 from torch.nn.functional import smooth_l1_loss, binary_cross_entropy
 
 def build_model(device):
@@ -28,12 +28,14 @@ class GeneralRCNN(nn.Module):
     def __init__(self, device):
         super(GeneralRCNN, self).__init__()
         backbone = ResnetBackbone()
-        head = CombinedHead(n_ang=4, h_feat=100)
+        head = CombinedHead(device, n_ang=4, h_feat=100)
         self.head = head
         self.backbone = backbone
+        self.device = device
         self.to(device)
 
     def forward(self, img, targets=None):
+        img = img.to(self.device)
         features = self.backbone(img)
         preds, loss = self.head(features, targets)
         return preds, loss
@@ -112,16 +114,16 @@ class BalancedSampler:
         b_factor (int): balance factor that determines the ratio of
             positive to negative samples from a single example.
     """
-    def __init__(self, device, n_ang, b_factor=2)
+    def __init__(self, device, n_ang, b_factor=2):
         super(BalancedSampler, self).__init__()
-        gt_extractor = build_gt_extractor(n_ang)
+        gt_extractor = GTExtractor(n_ang)
         stride_factor = torch.tensor([gt_extractor.pixel_stride,
             gt_extractor.pixel_stride, gt_extractor.angle_stride]).to(device)
         self.gt_extractor = gt_extractor
         self.stride_factor = stride_factor
         self.pos_inds = []
         self.pos_examples = 0
-        self.dev = dev
+        self.dev = device
         self.b_factor = b_factor
 
     def clear_state(self):
