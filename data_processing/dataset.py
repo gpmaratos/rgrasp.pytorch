@@ -1,8 +1,12 @@
 import os
 import skimage
-import AUGMENTER
+import random
+import torch
+import numpy as np
+from data_processing.augment_image import Augmenter
 from torch.utils.data import Dataset
 from torchvision.transforms import Normalize
+from utils.bbox import BoundingBoxList
 
 class CornellDataset(Dataset):
     """
@@ -29,7 +33,7 @@ class CornellDataset(Dataset):
         normalize = Normalize(
             mean=[0.485, 0.456, 0.406] ,std=[0.229, 0.224, 0.225]
         )
-        augmenter = AUGMENTER()
+        augmenter = Augmenter(1)
 
         #build object_lookup_table and background_lookup_table
         with open(os.path.join(d_path, 'z.txt')) as f:
@@ -85,12 +89,10 @@ class CornellDataset(Dataset):
         with open(img_pref+"cpos.txt") as f:
             f = f.read().split("\n")[:-1]
         gt_boxes = BoundingBoxList(f)
-        if self.aug:
-            np_img, gt_boxes = self.augment(np_img, gt_boxes)
-        if self.train:
-            np_img = torch.tensor(np_img).permute(2, 0, 1).float()
-            np_img = self.normalize(np_img)
-        return np_img, gt_boxes
+        np_img, gt_boxes= self.augmenter(np_img, gt_boxes)
+        np_img_mod = torch.tensor(np_img).permute(2, 0, 1).float()
+        np_img_mod = self.normalize(np_img_mod)
+        return np_img_mod, np_img, gt_boxes
 
     def __getitem__(self, idx):
         obj_id = self.index[idx]
