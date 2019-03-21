@@ -1,9 +1,11 @@
 import os
+import torch
 import logging
 import datetime
+from torch import optim
 from data_processing.dataloader import build_data_loader
 from utils.cuda_check import get_device
-from model.grasp_rcnn import build_model
+from models.grasp_rcnn import build_model
 
 def train(d_path, w_path, batch_size):
     """
@@ -29,23 +31,23 @@ def train(d_path, w_path, batch_size):
     )
 
     #run training loop
-    for i in range(start, end):
-        print('Epoch: %d'%(i))
+    for i in range(epochs):
+        print('Epoch: %d'%(i+1))
         train_loss, val_loss = [], []
         for bind, batch in enumerate(dl_train):
-            inp = batch[0].to(dev)
-            preds, loss = model(inp, batch[1])
-            print(' %d/%d '%(bind, len(dl)), end='\r')
+            preds, loss = model(batch[0], batch[2])
+            print(' %d/%d '%(bind, len(dl_train)), end='\r')
             train_loss.append(loss.item())
             opt.zero_grad()
             loss.backward()
             opt.step()
+        print('')
         with torch.no_grad():
             for bind, batch in enumerate(dl_val):
-                inp = batch[0].to(dev)
-                preds, loss = model(inp, batch[1])
-                print(' %d/%d '%(bind, len(dl)), end='\r')
+                preds, loss = model(batch[0], batch[2])
+                print(' %d/%d '%(bind, len(dl_val)), end='\r')
                 val_loss.append(loss.item())
+        print('')
         avg_train_loss = sum(train_loss)/len(dl_train)
         avg_val_loss = sum(val_loss)/len(dl_val)
         print(' Train: %f\n Val: %f'%(avg_train_loss, avg_val_loss))
