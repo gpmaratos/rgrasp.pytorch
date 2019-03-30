@@ -12,6 +12,8 @@ class Augmenter:
     def __call__(self, img, labels):
         img, labels = self.rotate(img, labels)
         img, labels = self.flip[randint(1, 4)](img, labels)
+        #this is needed because pytorch doesn't support negative indices
+        img = img.copy()
         return img, labels
 
     def translate_coord(self, coord, ct, st):
