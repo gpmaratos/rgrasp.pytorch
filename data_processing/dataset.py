@@ -33,7 +33,8 @@ class CornellDataset(Dataset):
         normalize = Normalize(
             mean=[0.485, 0.456, 0.406] ,std=[0.229, 0.224, 0.225]
         )
-        augmenter = Augmenter(1)
+        img_size = (640, 480)
+        augmenter = Augmenter(img_size[0], img_size[1])
 
         #build object_lookup_table and background_lookup_table
         with open(os.path.join(d_path, 'z.txt')) as f:
@@ -82,17 +83,17 @@ class CornellDataset(Dataset):
 
         img_pref = os.path.join(self.d_path, "pcd%04d"%(img_id))
         img_path = img_pref + "r.png"
+        np_img = skimage.io.imread(img_path)
         background = self.bkg_lt[img_id]
         bkg_path = os.path.join(self.d_path, "pcdb%04d"%(background)+"r.png")
-        np_img = skimage.io.imread(img_path)
         np_img -= skimage.io.imread(bkg_path)
         with open(img_pref+"cpos.txt") as f:
             f = f.read().split("\n")[:-1]
-        gt_boxes = BoundingBoxList(f)
-        np_img, gt_boxes= self.augmenter(np_img, gt_boxes)
-        np_img_mod = torch.tensor(np_img).permute(2, 0, 1).float()
+        gt_boxes = BoundingBoxList(f).irecs
+        np_img_mod, gt_boxes_mod = self.augmenter(np_img, gt_boxes)
+        np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
         np_img_mod = self.normalize(np_img_mod)
-        return np_img_mod, np_img, gt_boxes
+        return np_img_mod, np_img, gt_boxes_mod, gt_boxes
 
     def __getitem__(self, idx):
         obj_id = self.index[idx]
