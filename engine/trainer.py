@@ -7,6 +7,10 @@ from data_processing.dataloader import build_data_loader
 from utils.cuda_check import get_device
 from models.grasp_rcnn import build_model
 
+def record(msg):
+        print(msg)
+        logging.info(msg)
+
 def train(d_path, w_path, batch_size):
     """
     Training loop for grasping model. Model and optimizer are instantiated here.
@@ -17,10 +21,10 @@ def train(d_path, w_path, batch_size):
 
     #set script variables
     device = get_device()
-    epochs = 100
+    epochs = 1
     dl_train = build_data_loader(batch_size, d_path, 'train')
     dl_val = build_data_loader(batch_size, d_path, 'val')
-    logging.basicConfig(filename='train.log', level=logging.DEBUG)
+    logging.basicConfig(filename='train.log', level=logging.INFO)
 
     #create model and optimizer
     model = build_model(device)
@@ -31,6 +35,8 @@ def train(d_path, w_path, batch_size):
     )
 
     #run training loop
+    logging.info('')
+    record('Training Session: %s'%(datetime.datetime.now()))
     for i in range(epochs):
         print('Epoch: %d'%(i+1))
         train_loss, val_loss = [], []
@@ -50,5 +56,12 @@ def train(d_path, w_path, batch_size):
         print('')
         avg_train_loss = sum(train_loss)/len(dl_train)
         avg_val_loss = sum(val_loss)/len(dl_val)
-        print(' Train: %f\n Val: %f'%(avg_train_loss, avg_val_loss))
+        msg = ' Epoch: %d Train: %f Val: %f'%(i+1, avg_train_loss, avg_val_loss)
+        record(msg)
     print('')
+
+    model = model.to(torch.device('cpu'))
+    m_pref = 'model-' + str(datetime.date.today())
+    w_path = os.path.join(w_path, m_pref+'.pt')
+    record("\nSaving Model at: %s"%(w_path))
+    torch.save(model.state_dict(), w_path)
