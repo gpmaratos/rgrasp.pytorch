@@ -1,4 +1,5 @@
 import os
+import math
 import skimage
 import random
 import torch
@@ -12,7 +13,7 @@ class CornellDataset(Dataset):
     """
     CornellDataset. Class which defines how one example is processed from the
     raw data. The image is subtracted from its background, then normalzed based
-    on the requirements specified in the pytorch documentaion, and hopefully
+    on the requirements specified in the pytorch documentation, and hopefully
     (future feature) be cropped and rotated randomly. Images 132 and 165 are
     ignored because their ground truth is not annotated properly.
 
@@ -81,18 +82,27 @@ class CornellDataset(Dataset):
     def extract_img(self, img_id):
         """extract_img. Function that extracts a single image using its id"""
 
+        #read image
         img_pref = os.path.join(self.d_path, "pcd%04d"%(img_id))
         img_path = img_pref + "r.png"
         np_img = skimage.io.imread(img_path)
+
+        #subtract background image
         background = self.bkg_lt[img_id]
         bkg_path = os.path.join(self.d_path, "pcdb%04d"%(background)+"r.png")
         np_img -= skimage.io.imread(bkg_path)
+
+        #extract ground truth rectangles
         with open(img_pref+"cpos.txt") as f:
             f = f.read().split("\n")[:-1]
-        gt_boxes = BoundingBoxList(f).irecs
-        np_img_mod, gt_boxes_mod = self.augmenter(np_img, gt_boxes)
+        gt_boxes = BoundingBoxList(f)
+
+        #and augment image for training
+        np_img_mod, gt_boxes_mod = self.augmenter(np_img, gt_boxes.irecs)
+        gt_boxes_mod = process(gt_boxes_mod)
         np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
         np_img_mod = self.normalize(np_img_mod)
+
         return np_img_mod, np_img, gt_boxes_mod, gt_boxes
 
     def __getitem__(self, idx):
@@ -101,3 +111,20 @@ class CornellDataset(Dataset):
         img_gt_pairs = [self.extract_img(img_id) for img_id in img_ids]
         return img_gt_pairs
 
+def create_tuple(rec):
+    """formats ground truth rectangle into a tuple (x, y, t)"""
+    x = float(sum([point[0] for point in rec]))/4
+    y = float(sum([point[1] for point in rec]))/4
+
+    if rec[0][0] < rec[1][0]:
+        xhat_a = rec[1][0] - rec[0][0]
+        yhat_a = rec[1][1] - rec[0][1]
+    else:
+         xhat_a = rec[0][0] - rec[1][0]
+         yhat_a = rec[0][1] - rec[1][1]
+    dist_a = math.sqrt(xhat_a**2 + yhat_a**2)
+    ang = math.acos(yhat_a/dist_a)
+    return (x, y, ang)
+
+def process(recs):
+    return [create_tuple(rec) for rec in recs]
