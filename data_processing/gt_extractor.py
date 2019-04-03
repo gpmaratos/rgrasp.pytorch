@@ -2,6 +2,8 @@ import math
 
 class GTExtractor:
     """
+    GTExtractor. Defines how the ground truth rectangles are processed into
+    targets for learning.
     GTExtractor. Class which reads the targets object, which is a batch
     of bbox objects, and returns two objects. The first is a batch of
     anchor positions, which are calculated for each grasp point. The
@@ -41,7 +43,24 @@ class GTExtractor:
         self.anchor_points = []
         self.offsets = []
 
-    def __call__(self, bboxes):
+    def __call__(self, recs):
+        tuples = [self.create_tuple(rec) for rec in recs]
         self.clear_points()
-        [self.extract_anchor(bbox) for bbox in bboxes.ibboxes]
+        [self.extract_anchor(bbox) for bbox in tuples]
         return self.anchor_points, self.offsets
+
+    def create_tuple(self, rec):
+        """formats ground truth rectangle into a tuple (x, y, t)"""
+        x = float(sum([point[0] for point in rec]))/4
+        y = float(sum([point[1] for point in rec]))/4
+
+        if rec[0][0] < rec[1][0]:
+            xhat_a = rec[1][0] - rec[0][0]
+            yhat_a = rec[1][1] - rec[0][1]
+        else:
+             xhat_a = rec[0][0] - rec[1][0]
+             yhat_a = rec[0][1] - rec[1][1]
+        dist_a = math.sqrt(xhat_a**2 + yhat_a**2)
+        ang = math.acos(yhat_a/dist_a)
+        return (x, y, ang)
+

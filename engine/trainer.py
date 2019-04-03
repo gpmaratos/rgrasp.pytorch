@@ -22,8 +22,8 @@ def train(d_path, w_path, batch_size):
     #set script variables
     device = get_device()
     epochs = 1
-    dl_train = build_data_loader(batch_size, d_path, 'train')
-    dl_val = build_data_loader(batch_size, d_path, 'val')
+    dl_train = build_data_loader(batch_size, d_path, 'train', 3)
+    dl_val = build_data_loader(batch_size, d_path, 'val', 3)
     logging.basicConfig(filename='train.log', level=logging.INFO)
 
     #create model and optimizer

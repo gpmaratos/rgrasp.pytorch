@@ -12,9 +12,9 @@ def collate(slist):
     y_bboxes = [e[2] for e in tups]
     return (x_img, x_img_orig, y_bboxes)
 
-def build_data_loader(batch_size, d_path, d_type):
+def build_data_loader(batch_size, d_path, d_type, n_ang):
     """build_data_loader. create wrapper for dataset for batch processing"""
 
-    ds = CornellDataset(d_path, d_type)
+    ds = CornellDataset(d_path, d_type, n_ang)
     return DataLoader(ds, batch_size=batch_size, collate_fn=collate)
 

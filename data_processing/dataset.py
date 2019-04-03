@@ -5,6 +5,7 @@ import random
 import torch
 import numpy as np
 from data_processing.augment_image import Augmenter
+from data_processing.gt_extractor import GTExtractor
 from torch.utils.data import Dataset
 from torchvision.transforms import Normalize
 from utils.bbox import BoundingBoxList
@@ -29,13 +30,14 @@ class CornellDataset(Dataset):
             I hope to implement a LOOCV method for better evaluation.
     """
 
-    def __init__(self, d_path, d_type):
+    def __init__(self, d_path, d_type, n_ang):
         #build objects for data augmentation
         normalize = Normalize(
             mean=[0.485, 0.456, 0.406] ,std=[0.229, 0.224, 0.225]
         )
         img_size = (640, 480)
         augmenter = Augmenter(img_size[0], img_size[1])
+        gt_extract = GTExtractor(n_ang)
 
         #build object_lookup_table and background_lookup_table
         with open(os.path.join(d_path, 'z.txt')) as f:
@@ -70,6 +72,7 @@ class CornellDataset(Dataset):
 
         #create class members
         self.d_path = d_path
+        self.gt_extract = gt_extract
         self.normalize = normalize
         self.augmenter = augmenter
         self.obj_lt = obj_lt
@@ -99,7 +102,7 @@ class CornellDataset(Dataset):
 
         #and augment image for training
         np_img_mod, gt_boxes_mod = self.augmenter(np_img, gt_boxes.irecs)
-        gt_boxes_mod = process(gt_boxes_mod)
+        gt_boxes_mod = self.gt_extract(gt_boxes_mod)
         np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
         np_img_mod = self.normalize(np_img_mod)
 
@@ -111,20 +114,3 @@ class CornellDataset(Dataset):
         img_gt_pairs = [self.extract_img(img_id) for img_id in img_ids]
         return img_gt_pairs
 
-def create_tuple(rec):
-    """formats ground truth rectangle into a tuple (x, y, t)"""
-    x = float(sum([point[0] for point in rec]))/4
-    y = float(sum([point[1] for point in rec]))/4
-
-    if rec[0][0] < rec[1][0]:
-        xhat_a = rec[1][0] - rec[0][0]
-        yhat_a = rec[1][1] - rec[0][1]
-    else:
-         xhat_a = rec[0][0] - rec[1][0]
-         yhat_a = rec[0][1] - rec[1][1]
-    dist_a = math.sqrt(xhat_a**2 + yhat_a**2)
-    ang = math.acos(yhat_a/dist_a)
-    return (x, y, ang)
-
-def process(recs):
-    return [create_tuple(rec) for rec in recs]

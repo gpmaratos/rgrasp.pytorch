@@ -1,10 +1,10 @@
 import torch
+import math
 from random import randint
 from torch import sigmoid
 from torch import nn
 from torch.nn import Sequential, Conv2d
 from torchvision.models import resnet50
-from data_processing.gt_extractor import GTExtractor
 from torch.nn.functional import smooth_l1_loss, binary_cross_entropy
 
 def build_model(device):
@@ -116,10 +116,14 @@ class BalancedSampler:
     """
     def __init__(self, device, n_ang, b_factor=2):
         super(BalancedSampler, self).__init__()
-        gt_extractor = GTExtractor(n_ang)
-        stride_factor = torch.tensor([gt_extractor.pixel_stride,
-            gt_extractor.pixel_stride, gt_extractor.angle_stride]).to(device)
-        self.gt_extractor = gt_extractor
+#        gt_extractor = GTExtractor(n_ang)
+        pixel_stride = 32
+        angle_stride = math.radians(180)/n_ang
+        stride_factor = torch.tensor(
+            [pixel_stride, pixel_stride, angle_stride]
+        )
+        stride_factor = stride_factor.to(device)
+#        self.gt_extractor = gt_extractor
         self.stride_factor = stride_factor
         self.pos_inds = []
         self.pos_examples = 0
@@ -178,7 +182,7 @@ class BalancedSampler:
         return targ_reg, targ_cls
 
     def __call__(self, predictions, targets):
-        targets = [self.gt_extractor(target) for target in targets]
+#        targets = [self.gt_extractor(target) for target in targets]
         self.clear_state()
         preds_reg, preds_cls = self.extract_predictions(
                                     predictions, targets)
