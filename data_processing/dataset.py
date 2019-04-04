@@ -5,10 +5,8 @@ import random
 import torch
 import numpy as np
 from data_processing.augment_image import Augmenter
-from data_processing.gt_extractor import GTExtractor
 from torch.utils.data import Dataset
 from torchvision.transforms import Normalize
-from utils.bbox import BoundingBoxList
 
 class CornellDataset(Dataset):
     """
@@ -30,14 +28,14 @@ class CornellDataset(Dataset):
             I hope to implement a LOOCV method for better evaluation.
     """
 
-    def __init__(self, d_path, d_type, n_ang):
+    def __init__(self, d_path, d_type):
         #build objects for data augmentation
         normalize = Normalize(
             mean=[0.485, 0.456, 0.406] ,std=[0.229, 0.224, 0.225]
         )
         img_size = (640, 480)
         augmenter = Augmenter(img_size[0], img_size[1])
-        gt_extract = GTExtractor(n_ang)
+#        gt_extract = GTExtractor(n_ang)
 
         #build object_lookup_table and background_lookup_table
         with open(os.path.join(d_path, 'z.txt')) as f:
@@ -72,7 +70,6 @@ class CornellDataset(Dataset):
 
         #create class members
         self.d_path = d_path
-        self.gt_extract = gt_extract
         self.normalize = normalize
         self.augmenter = augmenter
         self.obj_lt = obj_lt
@@ -81,6 +78,10 @@ class CornellDataset(Dataset):
 
     def __len__(self):
         return len(self.index)
+
+    def get_coord(self, f):
+        ln = f.split()
+        return (float(ln[0]), float(ln[1]))
 
     def extract_img(self, img_id):
         """extract_img. Function that extracts a single image using its id"""
@@ -98,15 +99,21 @@ class CornellDataset(Dataset):
         #extract ground truth rectangles
         with open(img_pref+"cpos.txt") as f:
             f = f.read().split("\n")[:-1]
-        gt_boxes = BoundingBoxList(f)
+        gt_recs = [
+            [self.get_coord(f[i]),
+            self.get_coord(f[i+1]),
+            self.get_coord(f[i+2]),
+            self.get_coord(f[i+3])]
+                for i in range(0, len(f), 4)
+        ]
 
         #and augment image for training
-        np_img_mod, gt_boxes_mod = self.augmenter(np_img, gt_boxes.irecs)
-        gt_boxes_mod = self.gt_extract(gt_boxes_mod)
+        np_img_mod, gt_recs_mod = self.augmenter(np_img, gt_recs)
+#        gt_boxes_mod = self.gt_extract(gt_boxes_mod)
         np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
         np_img_mod = self.normalize(np_img_mod)
 
-        return np_img_mod, np_img, gt_boxes_mod, gt_boxes
+        return np_img_mod, np_img, gt_recs_mod, gt_recs
 
     def __getitem__(self, idx):
         obj_id = self.index[idx]
