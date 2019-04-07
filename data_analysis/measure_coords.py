@@ -11,6 +11,8 @@ from data_processing.dataset import CornellDataset
 """
 Calculate the distribution of angles
 """
+lst = []
+
 def extract_vector(tup_a, tup_b):
     diff_x = tup_a[0] - tup_b[0]
     diff_y = tup_a[1] - tup_b[1]
@@ -32,6 +34,9 @@ def calc_tup(tup):
     else:
         return d1
 
+def calc_coord(tup):
+    [lst.append(coord[1]) for coord in tup]
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('DPATH', type=str,
@@ -39,12 +44,11 @@ def main():
     args = parser.parse_args()
 
     d_path = args.DPATH
-    ds = CornellDataset(d_path, 'train')
+    ds = CornellDataset(d_path, 'val')
 
-    lst = []
     for bind, batch in enumerate(ds):
         print(' %d/%d '%(bind, len(ds)), end='\r')
-        [lst.append(calc_tup(tup)) for example in batch\
+        [calc_coord(tup) for example in batch\
             for tup in example[2]]
     plt.hist(lst)
     plt.show()
