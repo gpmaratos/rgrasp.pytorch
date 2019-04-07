@@ -96,10 +96,10 @@ class CornellDataset(Dataset):
         img_path = img_pref + "r.png"
         np_img = skimage.io.imread(img_path)
 
-#        #subtract background image
-#        background = self.bkg_lt[img_id]
-#        bkg_path = os.path.join(self.d_path, "pcdb%04d"%(background)+"r.png")
-#        np_img -= skimage.io.imread(bkg_path)
+        #subtract background image
+        background = self.bkg_lt[img_id]
+        bkg_path = os.path.join(self.d_path, "pcdb%04d"%(background)+"r.png")
+        np_img -= skimage.io.imread(bkg_path)
 
         #crop image to 320 by 320
         np_img = skimage.util.crop(np_img, ( (100, 60), (120, 200), (0, 0)))
@@ -117,9 +117,9 @@ class CornellDataset(Dataset):
 
         #and augment image for training
         np_img_mod, gt_recs_mod = self.augmenter(np_img, gt_recs)
-#        gt_recs_mod = [self.rec_formatter(rec) for rec in gt_recs_mod]
-#        np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
-#        np_img_mod = self.normalize(np_img_mod)
+        gt_recs_mod = [self.rec_formatter(rec) for rec in gt_recs_mod]
+        np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
+        np_img_mod = self.normalize(np_img_mod)
 
         return np_img_mod, np_img, gt_recs_mod, gt_recs
 
