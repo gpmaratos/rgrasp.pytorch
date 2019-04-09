@@ -1,10 +1,10 @@
 import torch
 from torch import nn
 from torchvision.models import resnet50
-from target_formatting.five_tuple import BalancedSampler
+from target_formatting.five_tuple import BalancedSampler, Loss
 
 def build_model(device):
-    return GeneralRCNN(device)
+    return GeneralRCNN(device).to(device)
 
 class GeneralRCNN(nn.Module):
 
@@ -17,14 +17,20 @@ class GeneralRCNN(nn.Module):
         self.head = head
         self.device = device
         self.b_sampler = b_sampler
+        self.loss = Loss()
 
     def forward(self, img_batch, targets=None):
         img_batch = img_batch.to(self.device)
         features = self.backbone(img_batch)
         preds = self.head(features)
         if self.training:
-            self.b_sampler(preds, targets)
-        return preds
+            target_off, target_cls, pred_off, pred_cls = \
+                self.b_sampler(preds, targets)
+            target_off = target_off.to(self.device)
+            target_cls = target_cls.to(self.device)
+            loss ,off, cls = self.loss(target_off, target_cls, pred_off, pred_cls)
+            return preds, loss, off, cls
+        return preds, None
 
 class ResnetBackbone(nn.Module):
     """
@@ -75,8 +81,8 @@ class HeadNetwork(nn.Module):
         self.bn2 = nn.BatchNorm2d(outf)
 
         self.relu = nn.ReLU(inplace=True)
-        #next layer predicts offsets and cls
-        self.layer4 = nn.Conv2d(outf*3, 6, 3, padding=1)
+        #next layer predicts offsets and 2 cls layers
+        self.layer4 = nn.Conv2d(outf*3, 7, 3, padding=1)
 
     def forward(self, feature_maps):
         x1 = self.layer0(feature_maps[0])
@@ -91,7 +97,7 @@ class HeadNetwork(nn.Module):
         features = torch.cat((x1, x2, x3), 1)
         features = self.relu(features)
         prediction = self.layer4(features)
-        self.relu(prediction[:, 5, :, :])
+        self.relu(prediction[:, -2:, :, :])
         return prediction
 
 #inp = torch.ones(4, 3, 320, 320)
