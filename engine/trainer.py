@@ -21,7 +21,7 @@ def train(d_path, w_path, batch_size):
 
     #set script variables
     device = get_device()
-    epochs = 1
+    epochs = 1000
     dl_train = build_data_loader(batch_size, d_path, 'train', 3)
     dl_val = build_data_loader(batch_size, d_path, 'val', 3)
     logging.basicConfig(filename='train.log', level=logging.INFO)
@@ -39,24 +39,29 @@ def train(d_path, w_path, batch_size):
     record('Training Session: %s'%(datetime.datetime.now()))
     for i in range(epochs):
         print('Epoch: %d'%(i+1))
-        train_loss, val_loss = [], []
+        train_off, train_cls, val_off, val_cls = [], [], [], []
         for bind, batch in enumerate(dl_train):
-            preds, loss = model(batch[0], batch[2])
+            preds, loss, off, cls = model(batch[0], batch[2])
             print(' %d/%d '%(bind, len(dl_train)), end='\r')
-            train_loss.append(loss.item())
+            train_off.append(off.item())
+            train_cls.append(cls.item())
             opt.zero_grad()
             loss.backward()
             opt.step()
-        print('')
+        print(' %d/%d '%(len(dl_train), len(dl_train)))
         with torch.no_grad():
             for bind, batch in enumerate(dl_val):
-                preds, loss = model(batch[0], batch[2])
+                preds, loss , off, cls= model(batch[0], batch[2])
                 print(' %d/%d '%(bind, len(dl_val)), end='\r')
-                val_loss.append(loss.item())
-        print('')
-        avg_train_loss = sum(train_loss)/len(dl_train)
-        avg_val_loss = sum(val_loss)/len(dl_val)
-        msg = ' Epoch: %d Train: %f Val: %f'%(i+1, avg_train_loss, avg_val_loss)
+                val_off.append(off.item())
+                val_cls.append(cls.item())
+        print(' %d/%d '%(len(dl_val), len(dl_val)))
+        avg_t_off = sum(train_off)/len(dl_train)
+        avg_t_cls = sum(train_cls)/len(dl_train)
+        avg_v_off = sum(val_off)/len(dl_val)
+        avg_v_cls = sum(val_cls)/len(dl_val)
+        msg = ' Epoch: %d Train: [%f, %f] Val: [%f, %f] '%(i+1, avg_t_off,
+            avg_t_cls, avg_v_off, avg_v_cls)
         record(msg)
     print('')
 
