@@ -28,8 +28,9 @@ class GeneralRCNN(nn.Module):
                 self.b_sampler(preds, targets)
             target_off = target_off.to(self.device)
             target_cls = target_cls.to(self.device)
-            loss ,off, cls = self.loss(target_off, target_cls, pred_off, pred_cls)
-            return preds, loss, off, cls
+            loss ,off, cls, offs =\
+                self.loss(target_off, target_cls, pred_off, pred_cls)
+            return preds, loss, off, cls, offs
         return preds, None
 
 class ResnetBackbone(nn.Module):
