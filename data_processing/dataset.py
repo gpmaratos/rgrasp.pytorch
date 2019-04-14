@@ -3,6 +3,7 @@ import math
 import skimage
 import random
 import torch
+import pcdreader
 import numpy as np
 from target_formatting.five_tuple import ConvertTuple
 from data_processing.augment_image import Augmenter
@@ -96,10 +97,18 @@ class CornellDataset(Dataset):
         img_path = img_pref + "r.png"
         np_img = skimage.io.imread(img_path)
 
+        #read point cloud file
+        pcd_path = img_pref + ".txt"
+        pcd_img = pcdreader.read(pcd_path)
+
         #subtract background image
         background = self.bkg_lt[img_id]
         bkg_path = os.path.join(self.d_path, "pcdb%04d"%(background)+"r.png")
         np_img -= skimage.io.imread(bkg_path)
+
+        #concatenate point cloud here
+        #need to figure out avgs and std dev of the slices to normalize later
+        #also modify the input of the model to accept this data
 
         #crop image to 320 by 320
         np_img = skimage.util.crop(np_img, ( (100, 60), (120, 200), (0, 0)))
