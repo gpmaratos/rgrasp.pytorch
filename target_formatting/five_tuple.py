@@ -21,7 +21,11 @@ class rectangle:
         self.y_off = (y % anchor_size)/anchor_size
         self.width = math.log(w/anchor_size)
         self.length = math.log(l/anchor_size)
-        self.theta = math.log(t/3.145926)
+        #there are rectangles that are vertical, so I will clamp
+        try:
+            self.theta = math.log(t/3.145926)
+        except ValueError:
+            self.theta = math.log(1e-4)
 
 class ConvertTuple:
     """
@@ -41,8 +45,6 @@ class ConvertTuple:
             ang = math.acos(diff_y/dist)
         else:
             ang = math.acos(diff_y/dist)
-        if ang == 0:
-            import pdb;pdb.set_trace()
         return diff_x, diff_y, dist, ang
 
     def __call__(self, tup):
@@ -68,10 +70,7 @@ class BalancedSampler:
     """
     def __init__(self, b_factor=2):
         self.b_factor = 2
-        self.pred_off = []
-        self.pred_cls = []
-        self.targ_off = []
-        self.targ_cls = []
+        self.clear_state()
 
     def clear_state(self):
         self.pred_off = []
@@ -150,5 +149,8 @@ class Loss:
 
     def __call__(self, targ_off, targ_cls, pred_off, pred_cls):
         off = F.smooth_l1_loss(pred_off, targ_off)
+        with torch.no_grad():
+            offs = F.smooth_l1_loss(pred_off, targ_off, reduction='none').mean(0)
+            offs = offs.cpu()
         cls = F.cross_entropy(pred_cls, targ_cls)
-        return off + cls, off, cls
+        return off + cls, off, cls, offs
