@@ -74,6 +74,7 @@ static PyObject* pcdreader_read(PyObject *self, PyObject *args)
         ifs.close();
 
         PyObject *narr = PyArray_SimpleNewFromData(3, dims, NPY_FLOAT, reinterpret_cast<void*>(arr));
+        PyArray_ENABLEFLAGS(reinterpret_cast<PyArrayObject*>(narr), NPY_ARRAY_OWNDATA);
         return narr;
     }
 }
