@@ -1,0 +1,90 @@
+\documentclass{article}
+\usepackage[final]{nips_2018}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+
+\title{Learning to Grasp: From the Cornell Dataset}
+%\author{George Maratos (need to mention advisor)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Fully autonomous grasping is a difficult problem. In this project, I explored
+the cornell grasping dataset and tried to see if I could build a model that
+learning how to model the information from this. The task to be learned was
+difficult, and the dataset was small, so I tried to mitigate these challenges
+with pretraining.
+\end{abstract}
+
+\section{Introduction}
+In the robotic grasping problem the goal is, given an object, select a grasp
+configuration such that the object can be restrained and
+manipulated to some desirable end. Finding such configurations is difficult
+because of the multi-modal nature of the input and the fact that there can be
+more than one suitable grasping location, leaving machines with the task
+of determing optimality for predicted configurations.
+
+A review done by Shabani \textit{et al.} [1], explores analytic and empirical
+methodologies from past works. The analytical
+methods try to model the kinematics and dynamics of the potential grasp and try to
+satisfy a set of constraints that define a successful grasp.
+The empirical methods refer to learning based models, which formulate the
+task as a
+supervised learning problem. More recent works use deep learning to detect
+possible grasps [Saxena, Hanbo, Hanbo's friend], and the dataset from [Saxena]
+is used to train the models described in this project. The rest of the
+introduction will be used to discuss the analytical, empirical, and deep learning
+methods from past works.
+
+\subsection{Analytical Methods}
+In Nguyen \textit{et al.} [2], the authors define \textit{force closure
+grasp} which occurs if forces applied by the fingers of the end
+effector can be balanced against external forces and torques
+(the latter is called the wrench force). This work is extended by Ferrari
+\textit{et al.} [3] to produce a \textit{quality criteria} which is defined as
+the ratio between the magnitude of the maximum wrench force to the
+applied finger forces. The authors present an algorithm that incorporates the
+quality criteria, to find the best grasp, by solving an optimization problem
+that minimizes the finger force but maximizes the wrench force for each member
+in a set of proposed grasps.
+
+Software exists for simulating the kinematics and dynamics of a robotic
+grasp [Graspit, 4], which models the grasp wrench space. It allows the use
+of objects with different shapes and surface friction forces, and has a library
+of robotic hands with various morphologies. In the simulation, various grasps
+can be evaluated before the best one is attempted by a physical robot. Miller
+\textit{et al.} [5] designed a grasp planning algorithm that models objects as a
+set of shape primitives. Poses were defined for each of these primitives and grasps
+were generated from these poses, to be evaluated by the simulation software in [4].
+
+
+\subsection{Summary of goals}
+There are some research papers on the work (early), which are not necessarily
+about solving with learning.
+The paper associated with
+this dataset is also interesting. Hanbo's paper tries a different approach.
+There is also pinto and gupta and google which take different approaches
+involving learning from attempting grasps. Another approach involves using
+techniques from object detection architectures like faster rcnn and ssd.
+
+
+\section{Data Analysis}
+I ran a series of tests, examining the input and targets as I change the task.
+I take a look at how I could apply linear regression to the task and see if
+I can get any results. I look at the depth data and see how I can extract
+features from it. I look at how data augmentation affects the task, and the
+clamping as well.
+
+\section{Experiments}
+I talk about the hardware I have access too. I trained some networks. I try
+to run some ablation experiments with and without features I extracted (and
+modification) in data analysis.
+
+\end{document}
