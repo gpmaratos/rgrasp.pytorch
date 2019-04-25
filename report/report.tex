@@ -31,39 +31,55 @@ because of the multi-modal nature of the input and the fact that there can be
 more than one suitable grasping location, leaving machines with the task
 of determing optimality for predicted configurations.
 
-A review done by Shabani \textit{et al.} [1], explores analytic and empirical
+A review done by Sahbani \textit{et al.} \cite{sahbani12}, explores analytic and empirical
 methodologies from past works. The analytical
 methods try to model the kinematics and dynamics of the potential grasp and try to
 satisfy a set of constraints that define a successful grasp.
 The empirical methods refer to learning based models, which formulate the
 task as a
 supervised learning problem. More recent works use deep learning to detect
-possible grasps [Saxena, Hanbo, Hanbo's friend], and the dataset from [Saxena]
+possible grasps \cite{lenz15,zhang18,zhou18}, and the dataset from [Saxena]
 is used to train the models described in this project. The rest of the
 introduction will be used to discuss the analytical, empirical, and deep learning
 methods from past works.
 
 \subsection{Analytical Methods}
-In Nguyen \textit{et al.} [2], the authors define \textit{force closure
-grasp} which occurs if forces applied by the fingers of the end
+In Nguyen \textit{et al.} \cite{nguyen86}, the authors define
+\textit{force closure grasp}
+which occurs if forces applied by the fingers of the end
 effector can be balanced against external forces and torques
 (the latter is called the wrench force). This work is extended by Ferrari
-\textit{et al.} \cite{ferrari92} to produce a \textit{quality criteria} which is defined as
+\textit{et al.} \cite{ferrari92} to produce a \textit{quality criteria}
+which is defined as
 the ratio between the magnitude of the maximum wrench force to the
 applied finger forces. The authors present an algorithm that incorporates the
 quality criteria, to find the best grasp, by solving an optimization problem
 that minimizes the finger force but maximizes the wrench force for each member
-in a set of proposed grasps.
+in a set of proposed grasps. In Zhang \textit{et al} \cite{zhang12}, the authors
+model various features of an object like surface properties, weight, center
+of mass, and weight distribution. These would be potentially useful in
+determining the best location for a grasp.
 
 Software exists for simulating the kinematics and dynamics of a robotic
-grasp [Graspit, 4], which models the grasp wrench space. It allows the use
+grasp \cite{miller04}, which models the grasp wrench space. It allows the use
 of objects with different shapes and surface friction forces, and has a library
 of robotic hands with various morphologies. In the simulation, various grasps
 can be evaluated before the best one is attempted by a physical robot. Miller
-\textit{et al.} [5] designed a grasp planning algorithm that models objects as a
-set of shape primitives. Poses were defined for each of these primitives and grasps
-were generated from these poses, to be evaluated by the simulation software in [4].
+\textit{et al.} \cite{miller03} designed a grasp planning algorithm that
+models objects as a
+set of shape primitives. Poses were defined for each of
+these primitives and grasps
+were generated from these poses, to be evaluated by the simulation software in
+\cite{miller04}.
 
+\subsection{Empirical Methods}
+The empirical methods involve techniques that implement learning algorithms that
+model the grasping problem from data. This section will only discuss the
+non-deep learning methods, deep learning is discussed in another section.
+
+The simulator Graspit! \cite{miller04} enabled researchers to collect synthetic
+data for grasping, one example is by Pelessof \textit{et al.} \cite{pelessof04}.
+The authors generated 
 
 \subsection{Summary of goals}
 There are some research papers on the work (early), which are not necessarily
