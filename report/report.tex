@@ -31,12 +31,23 @@ because of the multi-modal nature of the input and the fact that there can be
 more than one suitable grasping location, leaving machines with the task
 of determing optimality for predicted configurations.
 
-A review done by Sahbani \textit{et al.} \cite{sahbani12}, explores analytic and empirical
-methodologies from past works. The analytical
-methods try to model the kinematics and dynamics of the potential grasp and try to
-satisfy a set of constraints that define a successful grasp.
-The empirical methods refer to learning based models, which formulate the
-task as a
+Some of the earliest reviews of algorithms for grasping \cite{shimoga96,bicchi00},
+shows that the premliminary work involved solving unconstrained linear programming
+problems using objectives that measure dexterity and grasp quality. A grasp
+algorithm in this context is one that is able to calculate the stability or
+equilibrium of its grasp, and they are collectively refered too in the
+review as \textit{robot grasp synthesis algorithms}.
+
+The review by Sahbani \textit{et al.} \cite{sahbani12}, makes a distinction
+between methods that model the kinematics and dynamics of a grasp, like the
+synthesis algorithms, and methods that mimic human grasp strategies or learn
+from data. The former called the analytic methods and the latter empirical.
+They divide the analytical techniques into force closure methods and task
+oriented. The authors determine that force closure is able to find stable
+grasps but are usually not task oriented, and the task oriented strategies tend
+to be computationally intensive. The empirical methods on the other hand can
+model task oriented features, but struggle to generalize well to new objects.
+
 supervised learning problem. More recent works use deep learning to detect
 possible grasps \cite{lenz15,zhang18,zhou18}, and the dataset from [Saxena]
 is used to train the models described in this project. The rest of the
@@ -77,9 +88,23 @@ The empirical methods involve techniques that implement learning algorithms that
 model the grasping problem from data. This section will only discuss the
 non-deep learning methods, deep learning is discussed in another section.
 
+put something here about kmeans papers \cite{coelho01,piater02}
+
 The simulator Graspit! \cite{miller04} enabled researchers to collect synthetic
-data for grasping, one example is by Pelessof \textit{et al.} \cite{pelessof04}.
-The authors generated 
+data for grasping, one example is by Pelossof \textit{et al.} \cite{pelossof04}.
+The authors generated synthetic data by subsampling the parameters from
+generated grasps and they trained an
+SVM-RBF regressor with the goal of predicting grasp quality.
+
+The work done by Saxena \textit{et al.} \cite{saxena07,saxena08} proposed
+algorithms that used visual features to predict grasps, with the distinction from
+previous work being that the objects are only partially observable from sets of
+2-d images. They extract features that represent edges, textures, and color.
+The data was synthetic, constructed using a graphics library called PovRay.
+The task is to predict whether a location, which is the center of an image patch,
+contains a grasp. The modeling is done using logistic regression, and predicting
+the 3-d location is done using a simple probablistic model with naive Bayes
+assumptions.
 
 \subsection{Summary of goals}
 There are some research papers on the work (early), which are not necessarily
