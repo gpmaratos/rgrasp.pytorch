@@ -48,6 +48,24 @@ grasps but are usually not task oriented, and the task oriented strategies tend
 to be computationally intensive. The empirical methods on the other hand can
 model task oriented features, but struggle to generalize well to new objects.
 
+Bohg \textit{et al.} \cite{bohg14} observe that grasping methods typically aim
+to address the following object types: fully known, familiar, or fully unknown.
+When considering the empirical methods, fully known represents objects that
+have been seen in the training data before and the grasping problem reduces to
+locating the object and applying a similar grasp to those from experience.
+The familiar objects are assumed to have some matching characteristics to objects
+from the training data, like shape, color, and texture. Familiar objects
+introduce a new challenge of calculating similarity between objects so that
+the appropriate grasp can be determined. On the other hand, grasping algorithms
+will have no experience to utilize when approaching fully known objects. Methods
+of this category typically rely on finding structures in the features to
+synthesize a grasp.
+
+The focus of this work is to build empirical models for grasp synthesis using
+the Cornell Grasp Datset \cite{lenz15}, and evaluating them on familiar and
+fully unknown objects. 
+
+
 supervised learning problem. More recent works use deep learning to detect
 possible grasps \cite{lenz15,zhang18,zhou18}, and the dataset from [Saxena]
 is used to train the models described in this project. The rest of the
