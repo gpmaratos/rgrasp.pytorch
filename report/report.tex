@@ -63,16 +63,28 @@ synthesize a grasp.
 
 The focus of this work is to build empirical models for grasp synthesis using
 the Cornell Grasp Datset \cite{lenz15}, and evaluating them on familiar and
-fully unknown objects. 
-
-
-supervised learning problem. More recent works use deep learning to detect
-possible grasps \cite{lenz15,zhang18,zhou18}, and the dataset from [Saxena]
-is used to train the models described in this project. The rest of the
-introduction will be used to discuss the analytical, empirical, and deep learning
-methods from past works.
+fully unknown objects. Section 2 will describe previous methods for grasp
+synthesis. Section 3 will focus on analysis of the dataset and a description
+of the task. Section 4 will contain the experimental section. Finally, Section
+5 is the conclusion and future works.
 
 \subsection{Analytical Methods}
+The earliest mention of qualities of a successful grasp, to the author's
+knowledge, is from \textit{Kinematics of Machinery} by Franz Reuleaux
+\cite{reuleaux74}.
+In it, constant forces are applied to an object and it is considered
+constrained if sensible external forces can be balanced. When the
+object is in equilibrium, which occurs if the above conditions are
+met, then force closure can occur. Nguyen \textit{et al.} \cite{nguyen86},
+explored the notion of force closure and developed algorithms for computing
+the set of all force closure grasps on simple shapes.
+
+This work is extended by Ferrari \textit{et al.} \cite{ferrari92}, to calculate
+a grasp quality criteria. The criteria is measured as the ratio between the force
+applied externally and by the fingers. The best grasp is determined by solving
+an optimization problem that minimizes the finger force but still can maintain
+force closure against a large wrench force.
+
 In Nguyen \textit{et al.} \cite{nguyen86}, the authors define
 \textit{force closure grasp}
 which occurs if forces applied by the fingers of the end
