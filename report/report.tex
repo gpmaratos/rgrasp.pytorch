@@ -75,43 +75,33 @@ knowledge, is from \textit{Kinematics of Machinery} by Franz Reuleaux
 In it, constant forces are applied to an object and it is considered
 constrained if sensible external forces can be balanced. When the
 object is in equilibrium, which occurs if the above conditions are
-met, then force closure can occur. Nguyen \textit{et al.} \cite{nguyen86},
+met, then force closure occurs. Nguyen \textit{et al.} \cite{nguyen86},
 explored the notion of force closure and developed algorithms for computing
 the set of all force closure grasps on simple shapes.
-
 This work is extended by Ferrari \textit{et al.} \cite{ferrari92}, to calculate
 a grasp quality criteria. The criteria is measured as the ratio between the force
 applied externally and by the fingers. The best grasp is determined by solving
 an optimization problem that minimizes the finger force but still can maintain
 force closure against a large external force.
 
-In Nguyen \textit{et al.} \cite{nguyen86}, the authors define
-\textit{force closure grasp}
-which occurs if forces applied by the fingers of the end
-effector can be balanced against external forces and torques
-(the latter is called the wrench force). This work is extended by Ferrari
-\textit{et al.} \cite{ferrari92} to produce a \textit{quality criteria}
-which is defined as
-the ratio between the magnitude of the maximum wrench force to the
-applied finger forces. The authors present an algorithm that incorporates the
-quality criteria, to find the best grasp, by solving an optimization problem
-that minimizes the finger force but maximizes the wrench force for each member
-in a set of proposed grasps. In Zhang \textit{et al} \cite{zhang12}, the authors
-model various features of an object like surface properties, weight, center
-of mass, and weight distribution. These would be potentially useful in
-determining the best location for a grasp.
+Due to the multimodal nature of the task, it could be useful to model various
+features of the object being grasped. In the work by Zhang \textit{et al.}
+\cite{zhang12}, the authors explore bayesian filtering in $G-SL(AM)^2$. They
+build probabilistic models that model various features: the shape of the,
+object, mass, and friction coefficient for example. The application of this
+is for when you have input data blackout, which could occur if the arm
+during operation occludes the visual sensors.
 
-Software exists for simulating the kinematics and dynamics of a robotic
-grasp \cite{miller04}, which models the grasp wrench space. It allows the use
-of objects with different shapes and surface friction forces, and has a library
-of robotic hands with various morphologies. In the simulation, various grasps
-can be evaluated before the best one is attempted by a physical robot. Miller
-\textit{et al.} \cite{miller03} designed a grasp planning algorithm that
-models objects as a
-set of shape primitives. Poses were defined for each of
-these primitives and grasps
-were generated from these poses, to be evaluated by the simulation software in
-\cite{miller04}.
+The simulation software \textit{GraspIt!} \cite{miller04}, was developed with
+the goal of aiding research in robotic grasping. It has a wide set of features
+such as, many different types of hand models, collision detection, and grasp
+quality evaluation. It could be used in setting where expensive robotic hardware
+is unavailable or used in an algorithm that evaluates grasps in the simulation
+before choosing the best one for a physical robot.
+The software was applied in work done my Miller
+\textit{et al.} \cite{miller03}, where they designed a grasp planning algorithm
+that modeled objects as shape primitives and generated poses based off the
+primitives.
 
 \subsection{Empirical Methods}
 The empirical methods involve techniques that implement learning algorithms that
