@@ -72,7 +72,7 @@ of the task. Section 4 will contain the experimental section. Finally, Section
 \subsection{Analytical Methods}
 The earliest mention of qualities of a successful grasp, to the author's
 knowledge, is from \textit{Kinematics of Machinery} by Franz Reuleaux
-\cite{reuleaux74}.
+\cite{reuleaux76}.
 In it, constant forces are applied to an object and it is considered
 constrained if sensible external forces can be balanced. When the
 object is in equilibrium, which occurs if the above conditions are
@@ -109,16 +109,19 @@ The empirical methods involve techniques that implement learning algorithms that
 model the grasping problem from data. This section will only discuss the
 non-deep learning methods, deep learning is discussed in another section.
 
-\textit{GraspIt!} has also been used as a means of low cost data collection.
-Pelossof \textit{et al.} \cite{pelossof04}, collected parametric data from
-synthetic grasps.
 put something here about kmeans papers \cite{coelho01,piater02}
 
 The simulator Graspit! \cite{miller04} enabled researchers to collect synthetic
 data for grasping, one example is by Pelossof \textit{et al.} \cite{pelossof04}.
 The authors generated synthetic data by subsampling the parameters from
 generated grasps and they trained an
-SVM-RBF regressor with the goal of predicting grasp quality.
+SVM-RBF regressor with the goal of predicting grasp quality. They generated
+grasps by fixing certain joints, for example to guarantee the palm runs
+parallel with the surface of the object, and allowing others to be sampled
+randomly within a range. Using their procedure, the authors were able to
+generate a dataset with approximately $80\%$ of the grasps having a non-zero
+graspability score. Graspability being calculated in the same way as previous
+works \cite{ferrari92}.
 
 The work done by Saxena \textit{et al.} \cite{saxena07,saxena08} proposed
 algorithms that used visual features to predict grasps, with the distinction from
