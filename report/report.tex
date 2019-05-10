@@ -123,13 +123,12 @@ works \cite{ferrari92}.
 
 Robots that are predicting grasps will not always have a complete model of the
 input, for example visual sensors might not be able to view an object from all
-directions. Works like Kamon \textit{et al.} \cite{kamon96} attempt to predict
+directions. Kamon \textit{et al.} \cite{kamon96} attempt to predict
 grasps from only 2-d images of the object to be grasped. They solve two problems
 simultaneously: choosing grasping points, and predicting the quality of a grasp.
 About 2000 grasping examples were collected, which were used for prediction during
-testing. From an image, they
-are able to segment the image and extract features like center of mass. These
-features were used to calculate the quality of a grasp, and the authors claim
+testing. Features are extracted directly from the image, for example center of
+mass, and were used to calculate the quality of a grasp. The authors claim
 that it can be predicted reliably using only local features.
 %finish this
 
