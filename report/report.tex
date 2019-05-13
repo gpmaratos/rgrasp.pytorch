@@ -124,13 +124,30 @@ works \cite{ferrari92}.
 Robots that are predicting grasps will not always have a complete model of the
 input, for example visual sensors might not be able to view an object from all
 directions. Kamon \textit{et al.} \cite{kamon96} attempt to predict
-grasps from only 2-d images of the object to be grasped. They solve two problems
+grasps from only 2-d images of the object. They solve two problems
 simultaneously: choosing grasping points, and predicting the quality of a grasp.
 About 2000 grasping examples were collected, which were used for prediction during
 testing. Features are extracted directly from the image, for example center of
 mass, and were used to calculate the quality of a grasp. The authors claim
 that it can be predicted reliably using only local features.
 %finish this
+
+Learning a grasping point in the image plane may be easier for learning algorithms
+but they do not model the gripper configuration completely. The work by Jiang
+\textit{et al.}
+\cite{jiang11}, learn a rectangle configuration that can better represent a parallel
+gripper plate end effector. A rectangle, in this case, has $5$ parameters which
+correspond to the 2-d coordinate of the top left corner of the rectangle, the height
+and width, and the angle between the first edge and the x-axis. They define a score
+function, which is a linear combination of features, that represents the quality of
+a grasp rectangle. The features are calculated from the pixels within the rectangle, and
+consist of 17 filters and 5-bin histograms as a set of quick features and a collection of
+more advanced non-linear features are used as well when doing the final inference.
+Inference is done in a two step process,
+with two separate SVM ranking models. The first model ranks using the features that
+are easy to compute, and this prunes the space of possible rectangles. The second ranks
+the rectangles chosen by the first model. For calculating the rectangles on an angle,
+they rotate the image in discrete intervals of $15\circ$ before calculating the features.
 
 One approach to leveraging empirical data is to apply a non-parametric KNN
 model similar to previous works \cite{zhang11,ciocarlie14}.
