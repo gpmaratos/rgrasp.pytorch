@@ -132,6 +132,17 @@ mass, and were used to calculate the quality of a grasp. The authors claim
 that it can be predicted reliably using only local features.
 %finish this
 
+One approach to leveraging empirical data is to apply a non-parametric KNN
+model similar to previous works \cite{zhang11,ciocarlie14}.
+The objects are represented geometrically and a good grasp is modeled based
+on the quality of grasps from previous examples in the same coordinate position.
+A simple discriminator is used to compute a binary score for a grasp from the
+dataset and a new example. It compares the coordinates from both grasps and
+returns $0$ if they contain grasps or do not, and returns $1$ if they do not
+match. Using this metric, they model the probability of a good grasp occuring
+at a coordinate by considering the ratio of good grasps and bad grasps in the
+set of nearest neighbors.
+
 A few works have combined visual features with haptic feedback
 \cite{coelho01,piater02}. In their experiments, they probe the objects with
 haptic sensors and learn features that would be useful for determining a
