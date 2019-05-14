@@ -8,6 +8,7 @@
 \usepackage{amsfonts}
 \usepackage{nicefrac}
 \usepackage{microtype}
+\usepackage{gensymb}
 
 \title{Learning to Grasp: From the Cornell Dataset}
 %\author{George Maratos (need to mention advisor)}
@@ -132,6 +133,27 @@ mass, and were used to calculate the quality of a grasp. The authors claim
 that it can be predicted reliably using only local features.
 %finish this
 
+In some settings, a full 3-d model of the object to be grasped will be unavailable.
+The work by Saxena \textit{et al.} \cite{saxena07,saxena08} address this. 
+Given a set of images of the object in 2-d, it is possible to infer the location of it
+in 3-d. Their
+approach invovles modeling the probability that a grasp is present in the center of an
+image patch. Using synthetic data, they learn a set of parameters via MLE using
+logistic regression. The features are extracted from the image set and correspond to
+the following: edge filtering, texture masking, and color masking. To predict a grasp
+a MAP estimate is calculated for selecting the most probable grasp. In preceeding work
+\cite{saxena08a}, they address the issue that predicting a "grasp point" does little to
+model the physical limitations of the robotic grasping platform. They further incorporate
+depth maps and generate a new set of features that account for other properties:
+quatities representing the envelopement of the object by the hand, quantities that
+represent the distribution of the mass of the object in relation to the hand, and
+quantities that roughly calculate the shape of the object and the alignment of the hand
+in relation to this shape. In extending their previous work, their solution is
+two-fold with a model for predicting the location of a grasp and another model for
+predicting the probability that the robotic arm will be able to achieve the grasp suing
+the extra features as predictors.
+
+
 Learning a grasping point in the image plane may be easier for learning algorithms
 but they do not model the gripper configuration completely. The work by Jiang
 \textit{et al.}
@@ -143,11 +165,13 @@ function, which is a linear combination of features, that represents the quality
 a grasp rectangle. The features are calculated from the pixels within the rectangle, and
 consist of 17 filters and 5-bin histograms as a set of quick features and a collection of
 more advanced non-linear features are used as well when doing the final inference.
-Inference is done in a two step process,
+SVM's have been used in the past as a way to rank the quality of a grasp \cite{le10},
+in this work inference is done in a two step process
 with two separate SVM ranking models. The first model ranks using the features that
 are easy to compute, and this prunes the space of possible rectangles. The second ranks
 the rectangles chosen by the first model. For calculating the rectangles on an angle,
-they rotate the image in discrete intervals of $15\circ$ before calculating the features.
+they rotate the image in discrete intervals of $15\degree$ before calculating
+the features.
 
 One approach to leveraging empirical data is to apply a non-parametric KNN
 model similar to previous works \cite{zhang11,ciocarlie14}.
@@ -164,18 +188,6 @@ A few works have combined visual features with haptic feedback
 \cite{coelho01,piater02}. In their experiments, they probe the objects with
 haptic sensors and learn features that would be useful for determining a
 stable grasp.
-
-%this needs to be rewritten because I cite other work that uses visual features
-Other works \cite{saxena07,saxena08,saxena08a} proposed
-algorithms that used visual features to predict grasps, with the distinction from
-
-previous work being that the objects are only partially observable from sets of
-2-d images. They extract features that represent edges, textures, and color.
-The data was synthetic, constructed using a graphics library called PovRay.
-The task is to predict whether a location, which is the center of an image patch,
-contains a grasp. The modeling is done using logistic regression, and predicting
-the 3-d location is done using a simple probablistic model with naive Bayes
-assumptions.
 
 \subsection{Summary of goals}
 There are some research papers on the work (early), which are not necessarily
