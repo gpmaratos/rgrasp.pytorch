@@ -134,7 +134,7 @@ that it can be predicted reliably using only local features.
 %finish this
 
 In some settings, a full 3-d model of the object to be grasped will be unavailable.
-The work by Saxena \textit{et al.} \cite{saxena07,saxena08} address this. 
+The work by Saxena \textit{et al.} \cite{saxena07,saxena08} address this.
 Given a set of images of the object in 2-d, it is possible to infer the location of it
 in 3-d. Their
 approach invovles modeling the probability that a grasp is present in the center of an
@@ -184,10 +184,17 @@ match. Using this metric, they model the probability of a good grasp occuring
 at a coordinate by considering the ratio of good grasps and bad grasps in the
 set of nearest neighbors.
 
-A few works have combined visual features with haptic feedback
-\cite{coelho01,piater02}. In their experiments, they probe the objects with
-haptic sensors and learn features that would be useful for determining a
-stable grasp.
+Some early approaches try to combine visual features with haptic feedback,
+\cite{piater02,coelho01}. Finding parameters for high quality models in this
+case is done using Expectation Maximization, learning and execution stage
+are not separated. Visual
+features are used to recommend grasp configurations, and from these configurations
+the machine will probe the surface of the object with its end-effector until
+a stable grasp is found. This work represents a critical shift where a grasping
+algorithm does not explicitly represent objects geometrically but instead
+sythensize a grasp from incomplete images and feedback of the object.
+
+
 
 \subsection{Summary of goals}
 There are some research papers on the work (early), which are not necessarily
