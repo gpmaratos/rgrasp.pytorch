@@ -194,7 +194,17 @@ a stable grasp is found. This work represents a critical shift where a grasping
 algorithm does not explicitly represent objects geometrically but instead
 sythensize a grasp from incomplete images and feedback of the object.
 
-
+Many works try modeling the probability that a grasp lies as some coordinate
+in the image plane. Another approach is to consider grasp synthesis as a
+planning problem, which can be about finding a configuration for the machine
+in environments of high uncertainty. Sensors could
+give a partial view of the object, for example the front of cup, and the machine
+must be able to quantify this uncertainty and act based off this information.
+A machine that can recognize the uncertainty in a grasp can decide if it has
+enough information to attempt the grasp or if it needs to probe the environment
+for further data. In Hisiao \textit{et al.} \cite{hsiao07}, the authors
+partition the configuration space of the robot into a discrete set of commands
+which act as states in a Partially Observable Markov Decision Process.
 
 \subsection{Summary of goals}
 There are some research papers on the work (early), which are not necessarily
