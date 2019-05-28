@@ -24,7 +24,7 @@ def main():
     for ds in [ds_train, ds_val, ds_test]:
         img_num, rec_num = 0, 0
         for bind, batch in enumerate(ds):
-            print(' %d/%d '%(bind, len(ds)), end='\r')
+            print(' %d/%d '%(bind+1, len(ds)), end='\r')
             img_num += len(batch)
             for bh in batch:
                 rec_num += len(bh[2])
