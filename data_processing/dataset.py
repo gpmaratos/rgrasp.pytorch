@@ -97,9 +97,9 @@ class CornellDataset(Dataset):
         img_path = img_pref + "r.png"
         np_img = skimage.io.imread(img_path)
 
-        #read point cloud file
-        pcd_path = img_pref + ".txt"
-        pcd_img = pcdreader.read(pcd_path)
+#        #read point cloud file
+#        pcd_path = img_pref + ".txt"
+#        pcd_img = pcdreader.read(pcd_path)
 
         #subtract background image
         background = self.bkg_lt[img_id]
@@ -126,11 +126,13 @@ class CornellDataset(Dataset):
 
         #and augment image for training
         np_img_mod, gt_recs_mod = self.augmenter(np_img, gt_recs)
-        gt_recs_mod = [self.rec_formatter(rec) for rec in gt_recs_mod]
-        np_img_mod = torch.tensor(np_img_mod).permute(2, 0, 1).float()
-        np_img_mod = self.normalize(np_img_mod)
+        gt_recs_mod_format = [self.rec_formatter(rec) for rec in gt_recs_mod]
+        np_img_mod_p = torch.tensor(np_img_mod).permute(2, 0, 1).float()
+        np_img_mod_p = self.normalize(np_img_mod_p)
 
-        return np_img_mod, np_img, gt_recs_mod, gt_recs
+        #this is officially very ugly, needs fixing later
+        return np_img_mod_p, np_img, gt_recs_mod_format, gt_recs,\
+            gt_recs_mod, np_img_mod
 
     def __getitem__(self, idx):
         obj_id = self.index[idx]
