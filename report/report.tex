@@ -207,7 +207,8 @@ partition the configuration space of the robot into a discrete set of commands
 which act as states in a Partially Observable Markov Decision Process.
 
 \subsection{Deep Learning Methods}
-Deep learning has shown promise for many computer vision tasks, see the review
+The Deep learning methods can be considered a subset of the empirical methods
+that has shown promise for many computer vision tasks, see the review
 by Voulodimos \textit{et al.} \cite{voulodimos18} for an overview of recent
 advances. As described above, some approaches to grasp synthesis involve the
 usage of visual features. One challenge in tasks of computer vision is the
@@ -215,10 +216,16 @@ selection of powerful and discriminative features, and deep learning methods
 are useful learning features from the data as opposed to hand crafted ones.
 
 Using the configuration in \cite{jiang11}, where the grasp is represented as
-a rectangle, The task can be formulated in two ways.
+a rectangle, the task can be formulated in two ways.
 The first where the machine is asked to evaluate if a given rectangle contains
 a grasp, which is known as recognition. The other is detection, where the
-machine is asked to identify all possible grasps from an image.
+machine is asked to identify all possible grasps from an image. The work by
+Lenz \textit{et al.} \cite{lenz15}, demonstrated an approach to grasp
+detection which involved a two step cascaded approach. First, they employ
+a shallow network to learn features that will discriminate good grasp locations
+from bad. The network is shallow so that fast detection can occur. Then, they
+use a deeper network for selecting the best grasp from the set of grasps
+proposed by the first network.
 
 \subsection{Summary of goals}
 There are some research papers on the work (early), which are not necessarily
