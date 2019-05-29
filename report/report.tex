@@ -9,6 +9,9 @@
 \usepackage{nicefrac}
 \usepackage{microtype}
 \usepackage{gensymb}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{wrapfig}
 
 \title{Learning to Grasp: From the Cornell Dataset}
 %\author{George Maratos (need to mention advisor)}
@@ -238,7 +241,70 @@ techniques from object detection architectures like faster rcnn and ssd.
 
 
 \section{Data Analysis}
-The Cornell Grasping Dataset \cite{dataset}
+All scripts associated with interpreting the dataset can be found online
+\cite{ghrepo}. The dataset is approximately 880 images, which contain common
+household and office objects. The entire dataset consists of about 10.4 GB.
+Each image has one object, centered in the image, placed on a white table.
+Every object has a set of grasping rectangles, that are defined by the position
+of the corners. Most objects have around 5 rectangles, but there are outliers
+with over 20. See the histogram showing the distribution of rectangles per image
+in Figure \ref{fig:recdist}.
+
+\begin{figure}
+\centering
+\subfloat[Train]{\includegraphics[width=0.4\textwidth]{figures/trainrecdist.png}}
+\qquad
+\subfloat[Val]{\includegraphics[width=0.4\textwidth]{figures/valrecdist.png}}
+\caption{The Distribution of Rectangles per Image on the Training and Validation Sets}
+\label{fig:recdist}
+\end{figure}
+
+
+The method used in this paper employs an anchor box
+based detection model, so selecting the appropriate anchor box width is important.
+Here we choose about 16 pixel width squares, as this results in few grasping
+rectangles being connected to the same anchor box and having the largest anchor
+size simultaneously. Avoiding overlapping anchor boxes is important because
+during the training phase, as they introduce ambiguity.
+See figure (something) for a distribution of the number
+of overlapping rectangles per image, given that anchor size is 16.
+
+See Figure \ref{fig:summary} for detailed information about general
+information of the dataset.
+
+\begin{wrapfigure}{R}{0.5\textwidth}
+\centering
+\begin{tabular}{c|c|c|c|}
+&Object&Images&Rectangles\\
+\hline
+Train&168&617&3567\\
+\hline
+Val&24&81&456\\
+\hline
+Test&52&185&1082\\
+\hline
+Totals&244&883&5105\\
+\hline
+\end{tabular}
+\caption{Summary Counts of the Dataset}
+\label{fig:summary}
+\end{wrapfigure}
+
+
+\bibliographystyle{plain}
+
+\subsection{Data Preprocessing}
+Given that the dataset is small, in comparison with other datasets for deep
+learning, it is important to perform data augmentation to prevent overfitting.
+Following Zhang \textit{et al.} \cite{zhang18} the augmentation done to each
+image is the following, a random flip horizontally, a random flip vertically,
+a random rotation of the image about the center ranging from $-30\degree$ to
+$30\degree$. The background image is also subtracted to reduce noise.
+
+Every image also has a point cloud file, that contains depth data from a kinect
+sensor. This is processed into an array and used as either separate input or
+concatenated with the existing image tensor. Extracting the depth is written as an
+extension of numpy, and can be found online in \textit{extract\_depth}.
 
 I ran a series of tests, examining the input and targets as I change the task.
 I take a look at how I could apply linear regression to the task and see if
@@ -251,6 +317,5 @@ I talk about the hardware I have access too. I trained some networks. I try
 to run some ablation experiments with and without features I extracted (and
 modification) in data analysis.
 
-\bibliographystyle{plain}
 \bibliography{bibliography.bib}
 \end{document}
