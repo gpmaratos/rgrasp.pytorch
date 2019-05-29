@@ -5,6 +5,10 @@ Script to report summary statistics on rectangle counts per image:
     distribution
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.split(sys.path[0])[0])
+
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
