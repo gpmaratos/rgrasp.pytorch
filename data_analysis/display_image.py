@@ -2,6 +2,9 @@
 Script to display a single image with its image id
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.split(sys.path[0])[0])
 
 import numpy as np
 import argparse
@@ -64,6 +67,19 @@ def main():
                 print("Displaying image: %d"%(bind))
                 plt.show()
             continue
+        if inp == 'demo':
+            inp = input("Enter an object number for demo mode: ")
+            try:
+                identifier = int(inp)
+                batch = ds[identifier]
+                _, ax = plt.subplots(1)
+                img = create_img(batch[0][1], batch[0][3] )
+                ax.imshow(img)
+                plt.show()
+                continue
+            except (ValueError, IndexError):
+                print("Error: %s is not a valid id"%inp)
+                continue
         try:
             identifier = int(inp)
             batch = ds[identifier]
@@ -75,7 +91,7 @@ def main():
                 ax[i, 1].imshow(img_mod)
             plt.show()
 
-        except ValueError:
+        except (ValueError, IndexError):
             print("Error: %s is not a valid id or command!"%(inp))
             continue
 main()
