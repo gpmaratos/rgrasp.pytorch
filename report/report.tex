@@ -252,6 +252,14 @@ in Figure \ref{fig:recdist}.
 
 \begin{figure}
 \centering
+\subfloat{\includegraphics[width=0.3\textwidth]{figures/label_object_norm_1.png}}
+\subfloat{\includegraphics[width=0.3\textwidth]{figures/label_object_norm_2.png}}
+\subfloat{\includegraphics[width=0.3\textwidth]{figures/label_object_norm_3.png}}
+\caption{Labeled images in the dataset, the right most image has background subtraction}
+\end{figure}
+
+\begin{figure}
+\centering
 \subfloat[Train]{\includegraphics[width=0.4\textwidth]{figures/trainrecdist.png}}
 \qquad
 \subfloat[Val]{\includegraphics[width=0.4\textwidth]{figures/valrecdist.png}}
@@ -259,15 +267,23 @@ in Figure \ref{fig:recdist}.
 \label{fig:recdist}
 \end{figure}
 
-
 The method used in this paper employs an anchor box
 based detection model, so selecting the appropriate anchor box width is important.
 Here we choose about 16 pixel width squares, as this results in few grasping
 rectangles being connected to the same anchor box and having the largest anchor
 size simultaneously. Avoiding overlapping anchor boxes is important because
 during the training phase, as they introduce ambiguity.
-See figure (something) for a distribution of the number
+See Figure \ref{fig:overlapdist} for a distribution of the number
 of overlapping rectangles per image, given that anchor size is 16.
+
+\begin{figure}
+\centering
+\subfloat[Train]{\includegraphics[width=0.4\textwidth]{figures/rec_overlaps_train.png}}
+\qquad
+\subfloat[Val]{\includegraphics[width=0.4\textwidth]{figures/rec_overlaps_val.png}}
+\caption{The Distribution of Number of Overlaps per Image on the Training and Validation Sets}
+\label{fig:overlapdist}
+\end{figure}
 
 See Figure \ref{fig:summary} for detailed information about general
 information of the dataset.
@@ -290,8 +306,6 @@ Totals&244&883&5105\\
 \label{fig:summary}
 \end{wrapfigure}
 
-
-\bibliographystyle{plain}
 
 \subsection{Data Preprocessing}
 Given that the dataset is small, in comparison with other datasets for deep
@@ -317,5 +331,7 @@ I talk about the hardware I have access too. I trained some networks. I try
 to run some ablation experiments with and without features I extracted (and
 modification) in data analysis.
 
+\bibliographystyle{plain}
 \bibliography{bibliography.bib}
+
 \end{document}
