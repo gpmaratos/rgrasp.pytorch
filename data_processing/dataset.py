@@ -97,9 +97,9 @@ class CornellDataset(Dataset):
         img_path = img_pref + "r.png"
         np_img = skimage.io.imread(img_path)
 
-#        #read point cloud file
-#        pcd_path = img_pref + ".txt"
-#        pcd_img = pcdreader.read(pcd_path)
+        #read point cloud file
+        pcd_path = img_pref + ".txt"
+        pcd_img = pcdreader.read(pcd_path)
 
         #subtract background image
         background = self.bkg_lt[img_id]
@@ -107,6 +107,7 @@ class CornellDataset(Dataset):
         np_img -= skimage.io.imread(bkg_path)
 
         #concatenate point cloud here
+        np_img = np.concatenate((np_img, pcd_img), axis=2)
         #need to figure out avgs and std dev of the slices to normalize later
         #also modify the input of the model to accept this data
 
