@@ -1,5 +1,6 @@
 import os
 import torch
+import time
 import logging
 import datetime
 from torch import optim
@@ -37,8 +38,19 @@ def train(d_path, w_path):
     logging.info('')
     record('Training Session: %s'%(datetime.datetime.now()))
     for i in range(epochs):
+        print("")
         print('Epoch: %d'%(i+1))
         train_detect, val_detect = [], []
+        start = time.time()
         for bind, batch in enumerate(dl_train):
             print('Train: %d/%d  '%(bind+1, len(dl_train)), end='\r')
             out = model(batch[0], batch[2])
+        print("")
+        with torch.no_grad():
+            for bind, batch in enumerate(dl_val):
+                print('Val: %d/%d  '%(bind+1, len(dl_val)), end='\r')
+                out = model(batch[0], batch[2])
+        print("")
+        end = time.time()
+        etime = (end-start)/60
+        record("Epoch: %d, Total Time: %.2fm"%(i+1, etime))

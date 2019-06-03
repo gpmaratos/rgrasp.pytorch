@@ -65,7 +65,7 @@ class CascadeDetector(nn.Module):
         x = self.pl3(x)
         x = self.l4(x)
         #each anchor is 10 pixels here
-        import pdb;pdb.set_trace()
+#        import pdb;pdb.set_trace()
         return x
 
 class CascadePredictor(nn.Module):
