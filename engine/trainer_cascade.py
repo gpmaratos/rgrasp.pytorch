@@ -5,6 +5,7 @@ import datetime
 from torch import optim
 from data_processing.dataloader import build_data_loader
 from utils.cuda_check import get_device
+from models.cascade_net import build_model
 
 def record(msg):
         print(msg)
@@ -19,7 +20,7 @@ def train(d_path, w_path):
     #set script variables
     epochs = 100
     batch_size = 3
-    device = get_device
+    device = get_device()
     #these still require number of angles for some reason
     dl_train = build_data_loader(batch_size, d_path, 'train', 3)
     dl_val = build_data_loader(batch_size, d_path, 'val', 3)

@@ -20,9 +20,9 @@ class CascadeNet(nn.Module):
         self.detector = detector
         self.predictor = predictor
 
-    def forward(self, img_batch):
-        img_batch = img_batch.to(self.device)
-        detections = self.detector(img_batch)
+    def forward(self, img_arr, img_lbl):
+        img_arr = img_arr.to(self.device)
+        detections = self.detector(img_arr, img_lbl)
         """ The model needs to run inference and report the loss for
             both detector and predictor """
 
@@ -43,7 +43,7 @@ class CascadeDetector(nn.Module):
         super(CascadeDetector, self).__init__()
 
         #high granularity features from image, potentially edge detectors
-        self.high_gran_l0 = nn.Conv2d(4, 20, (3, 3))
+        self.high_gran_l0 = nn.Conv2d(6, 20, (3, 3))
 
         self.l1 = nn.Conv2d(20, 20, (13, 13))
         self.l2 = nn.Conv2d(40, 40, (10, 10))
@@ -55,8 +55,8 @@ class CascadeDetector(nn.Module):
         self.pl2 = AdaptiveConcatPool2d(72)
         self.pl3 = AdaptiveConcatPool2d(34)
 
-    def forward(self, img_batch):
-        x = self.high_gran_l0(img_batch)
+    def forward(self, img_arr, img_lbl):
+        x = self.high_gran_l0(img_arr)
         x = self.l1(x)
         x = self.pl1(x)
         x = self.l2(x)
@@ -65,6 +65,7 @@ class CascadeDetector(nn.Module):
         x = self.pl3(x)
         x = self.l4(x)
         #each anchor is 10 pixels here
+        import pdb;pdb.set_trace()
         return x
 
 class CascadePredictor(nn.Module):

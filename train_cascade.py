@@ -20,6 +20,6 @@ def main():
     d_path = args.DPATH
     w_path = args.WPATH
     batch_size = 3
-    train(d_path, w_path, batch_size)
+    train(d_path, w_path)
 
 main()
