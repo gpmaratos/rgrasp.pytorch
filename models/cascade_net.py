@@ -7,6 +7,8 @@ and then a set of features are used to predict offsets
 import torch
 from torch import nn
 from torchvision.models import resnet50
+import numpy as np
+from sklearn.metrics import precision_recall_fscore_support
 
 def build_model(device):
     return CascadeNet(device).to(device)
@@ -15,8 +17,8 @@ class CascadeNet(nn.Module):
 
     def __init__(self, device):
         super(CascadeNet, self).__init__()
-#        detector = CascadeDetector()
-        detector = CascadeDetectorPretrained()
+        detector = CascadeDetector(device)
+#        detector = CascadeDetectorPretrained()
         predictor = CascadePredictor()
         self.device = device
         self.detector = detector
@@ -24,8 +26,12 @@ class CascadeNet(nn.Module):
 
     def forward(self, img_arr, img_lbl):
         img_arr = img_arr.to(self.device)
-        detections, loss = self.detector(img_arr, img_lbl)
-        return detections, loss
+        detections, loss, prec, rec, f1, sup = self.detector(img_arr, img_lbl)
+
+        result_dict = {'detections':detections, 'loss':loss,
+            'prec':prec, 'rec':rec, 'f1':f1, 'sup':sup,
+        }
+        return detections, result_dict
         """ The model needs to run inference and report the loss for
             both detector and predictor """
 
@@ -42,7 +48,7 @@ class CascadeDetector(nn.Module):
     needs to be reduced by 300 pixels
     """
 
-    def __init__(self):
+    def __init__(self, device):
         super(CascadeDetector, self).__init__()
 
         #high granularity features from image, potentially edge detectors
@@ -55,7 +61,7 @@ class CascadeDetector(nn.Module):
         self.l4 = nn.Conv2d(base*8, base*8, (3, 3))
 
         #layer 5 is the predictive head
-        self.l5 = nn.Conv2d(base*8, 1, (1, 1))
+        self.l5 = nn.Conv2d(base*8, 2, (1, 1))
 
         self.bn = nn.BatchNorm2d(20)
         self.pl1 = AdaptiveConcatPool2d(153)
@@ -63,7 +69,9 @@ class CascadeDetector(nn.Module):
         self.pl3 = AdaptiveConcatPool2d(34)
 
         self.relu = torch.nn.ReLU()
-        self.lss = torch.nn.BCEWithLogitsLoss(reduction='mean')
+#        self.lss = torch.nn.BCEWithLogitsLoss(reduction='mean')
+        self.device = device
+        self.lss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1, 1.2]))
 
     def forward(self, img_arr, img_lbl):
         x = self.high_gran_l0(img_arr)
@@ -86,8 +94,8 @@ class CascadeDetector(nn.Module):
 
         x = self.l5(x)
         #each anchor is 10 pixels here
-        loss = self.compute_loss(x, img_lbl)
-        return x, loss
+        loss, prec, rec, f1, sup = self.compute_loss(x, img_lbl)
+        return x, loss, prec, rec, f1, sup
 
     def compute_loss(self, x, img_lbl):
         #assumed that x is of shape [batch, 1, 32, 32]
@@ -95,8 +103,8 @@ class CascadeDetector(nn.Module):
         for i in range(len(img_lbl)):
             #extract positive and negative inds
             pos_inds = [(r.x_pos, r.y_pos) for r in img_lbl[i]]
-            neg_size = len(pos_inds)*2
-            cls_sort, cls_ind = torch.sort(x[i].view(-1), descending=True)
+            neg_size = len(pos_inds)
+            cls_sort, cls_ind = torch.sort(x[i, 0].view(-1), descending=True)
             j, neg_inds = 0, []
             while len(neg_inds) < neg_size:
                 ind = cls_ind[j].item()
@@ -108,16 +116,20 @@ class CascadeDetector(nn.Module):
                 j += 1
             #build array
             for pair in pos_inds:
-                inp.append(x[i, 0, pair[0], pair[1]])
-                targ.append(1.)
+                inp.append(x[i, :, pair[0], pair[1]])
+                targ.append(1)
             for pair in neg_inds:
-                inp.append(x[i, 0, pair[0], pair[1]])
-                targ.append(0.)
+                inp.append(x[i, :, pair[0], pair[1]])
+                targ.append(0)
         #compute binary cross entropy loss
-        inp_tensor = torch.stack(inp).cpu()
-        targ_tensor = torch.tensor(targ)
+        inp_tensor = torch.stack(inp)
+        targ_tensor = torch.tensor(targ).to(self.device)
         loss = self.lss(inp_tensor, targ_tensor)
-        return loss
+        #I will use a threshold of 0.5 but it might not be optimal
+        inps = np.array([0 if t[0] > t[1] else 1 for t in inp])
+        targs = targ_tensor.cpu().numpy()
+        prec, rec, f1, sup = precision_recall_fscore_support(targs, inps)
+        return loss, prec, rec, f1, sup
 
 class CascadePredictor(nn.Module):
     def __init__(self):
@@ -163,16 +175,15 @@ class CascadeDetectorPretrained(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer5(x)
-        loss = self.compute_loss(x, img_lbl)
-        return x, loss
+        loss, prec, rec, f1, sup = self.compute_loss(x, img_lbl)
+        return x, loss, prec, rec, f1, sup
 
     def compute_loss(self, x, img_lbl):
-        #assumed that x is of shape [batch, 1, 32, 32]
         inp, targ = [], []
         for i in range(len(img_lbl)):
             #extract positive and negative inds
             pos_inds = [(r.x_pos, r.y_pos) for r in img_lbl[i]]
-            neg_size = len(pos_inds)*2
+            neg_size = len(pos_inds)*1.5
             cls_sort, cls_ind = torch.sort(x[i].view(-1), descending=True)
             j, neg_inds = 0, []
             while len(neg_inds) < neg_size:
@@ -194,7 +205,41 @@ class CascadeDetectorPretrained(nn.Module):
         inp_tensor = torch.stack(inp).cpu()
         targ_tensor = torch.tensor(targ)
         loss = self.lss(inp_tensor, targ_tensor)
-        return loss
+        #I will use a threshold of 0.5 but it might not be optimal
+        inps = (torch.sigmoid(inp_tensor) > 0.5).numpy()
+        targs = targ_tensor.numpy()
+        prec, rec, f1, sup = precision_recall_fscore_support(targs, inps)
+        return loss, prec, rec, f1, sup
+
+#    def compute_loss(self, x, img_lbl):
+#        #assumed that x is of shape [batch, 1, 32, 32]
+#        inp, targ = [], []
+#        for i in range(len(img_lbl)):
+#            #extract positive and negative inds
+#            pos_inds = [(r.x_pos, r.y_pos) for r in img_lbl[i]]
+#            neg_size = len(pos_inds)*2
+#            cls_sort, cls_ind = torch.sort(x[i].view(-1), descending=True)
+#            j, neg_inds = 0, []
+#            while len(neg_inds) < neg_size:
+#                ind = cls_ind[j].item()
+#                pair = (int(ind // 20), int(ind % 20))
+#                if pair in pos_inds:
+#                    j += 1
+#                    continue
+#                neg_inds.append(pair)
+#                j += 1
+#            #build array
+#            for pair in pos_inds:
+#                inp.append(x[i, 0, pair[0], pair[1]])
+#                targ.append(1.)
+#            for pair in neg_inds:
+#                inp.append(x[i, 0, pair[0], pair[1]])
+#                targ.append(0.)
+#        #compute binary cross entropy loss
+#        inp_tensor = torch.stack(inp).cpu()
+#        targ_tensor = torch.tensor(targ)
+#        loss = self.lss(inp_tensor, targ_tensor)
+#        return loss
 #inp = torch.ones(2, 4, 320, 320)
 #model = CascadeNet(torch.device('cpu'))
 #model(inp)
