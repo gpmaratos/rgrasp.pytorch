@@ -9,14 +9,15 @@ class rectangle:
     """
 
     def __init__(self, x, y, w, l, t):
-        anchor_size = 16
+        anchor_size = 10
         self.x_pos = int(x // anchor_size)
         self.y_pos = int(y // anchor_size)
         #there seems to be an example rotating outside of the image so I clamp
-        if self.x_pos == 20:
-            self.x_pos = 19
-        if self.y_pos == 20:
-            self.y_pos = 19
+        #changed the anchor size, now I need to redetermine if this is needed
+        if self.x_pos == 32:
+            self.x_pos = 31
+        if self.y_pos == 32:
+            self.y_pos = 31
         self.x_off = (x % anchor_size)/anchor_size
         self.y_off = (y % anchor_size)/anchor_size
         self.width = math.log(w/anchor_size)
