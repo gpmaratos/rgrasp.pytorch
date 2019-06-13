@@ -6,6 +6,7 @@ and then a set of features are used to predict offsets
 
 import torch
 from torch import nn
+from itertools import product
 from torchvision.models import resnet50
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
@@ -52,7 +53,7 @@ class CascadeDetector(nn.Module):
         super(CascadeDetector, self).__init__()
 
         #high granularity features from image, potentially edge detectors
-        base = 25
+        base = 55
         self.high_gran_l0 = nn.Conv2d(3, base, (3, 3))
 
         self.l1 = nn.Conv2d(base, base, (13, 13))
@@ -71,7 +72,7 @@ class CascadeDetector(nn.Module):
         self.relu = torch.nn.ReLU()
 #        self.lss = torch.nn.BCEWithLogitsLoss(reduction='mean')
         self.device = device
-        self.lss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1, 1.2]))
+        self.lss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1., 10.]))
 
     def forward(self, img_arr, img_lbl):
         x = self.high_gran_l0(img_arr)
@@ -94,8 +95,11 @@ class CascadeDetector(nn.Module):
 
         x = self.l5(x)
         #each anchor is 10 pixels here
-        loss, prec, rec, f1, sup = self.compute_loss(x, img_lbl)
-        return x, loss, prec, rec, f1, sup
+        if self.training:
+            loss, prec, rec, f1, sup = self.compute_loss(x, img_lbl)
+            return x, loss, prec, rec, f1, sup
+        else:
+            return x, None, None, None, None, None
 
     def compute_loss(self, x, img_lbl):
         #assumed that x is of shape [batch, 1, 32, 32]
@@ -103,17 +107,25 @@ class CascadeDetector(nn.Module):
         for i in range(len(img_lbl)):
             #extract positive and negative inds
             pos_inds = [(r.x_pos, r.y_pos) for r in img_lbl[i]]
-            neg_size = len(pos_inds)
-            cls_sort, cls_ind = torch.sort(x[i, 0].view(-1), descending=True)
-            j, neg_inds = 0, []
-            while len(neg_inds) < neg_size:
-                ind = cls_ind[j].item()
-                pair = (int(ind // 32), int(ind % 32))
-                if pair in pos_inds:
-                    j += 1
-                    continue
-                neg_inds.append(pair)
-                j += 1
+            neg_size = len(pos_inds)*3
+
+            #finding the points the network is most confidently incorrect
+            differences = []
+            for p_x, p_y in product(range(32), range(32)):
+                if x[i, 0, p_x, p_y] < x[i, 1, p_x, p_y]:
+                    diff = x[i, 1, p_x, p_y] - x[i, 0, p_x, p_y]
+                    differences.append((diff, p_x, p_y))
+            sorted_differences = sorted(differences, key=lambda z:z[0], reverse=True)
+#            cls_sort, cls_ind = torch.sort(diff, descending=True)
+#            j, neg_inds = 0, []
+#            while len(neg_inds) < neg_size:
+#                ind = cls_ind[j].item()
+#                pair = (int(ind // 32), int(ind % 32))
+#                if pair in pos_inds:
+#                    j += 1
+#                    continue
+#                neg_inds.append(pair)
+#                j += 1
             #build array
             for pair in pos_inds:
                 inp.append(x[i, :, pair[0], pair[1]])
@@ -121,12 +133,29 @@ class CascadeDetector(nn.Module):
             for pair in neg_inds:
                 inp.append(x[i, :, pair[0], pair[1]])
                 targ.append(0)
-        #compute binary cross entropy loss
+        #compute cross entropy loss
         inp_tensor = torch.stack(inp)
         targ_tensor = torch.tensor(targ).to(self.device)
         loss = self.lss(inp_tensor, targ_tensor)
         #I will use a threshold of 0.5 but it might not be optimal
         inps = np.array([0 if t[0] > t[1] else 1 for t in inp])
+        targs = targ_tensor.cpu().numpy()
+        prec, rec, f1, sup = precision_recall_fscore_support(targs, inps)
+        return loss, prec, rec, f1, sup
+
+    def compute_loss_alt(self, x, img_lbl):
+        pos_inds = []
+        targ_tensor = torch.zeros(x.shape[0], 1, x.shape[2], x.shape[3], dtype=torch.long)
+        for i in range(len(img_lbl)):
+            for j in range(len(img_lbl[i])):
+                targ_tensor[i, 0, img_lbl[i][j].x_pos, img_lbl[i][j].y_pos] = 1
+        x = x.permute(0, 2, 3, 1)
+        targ_tensor = targ_tensor.permute(0, 2, 3 ,1).to(self.device)
+        x = x.reshape(-1, 2)
+        targ_tensor = targ_tensor.view(-1)
+        #I should double check these tensors align
+        loss = self.lss(x, targ_tensor)
+        inps = np.array([0 if x[i, 0] > x[i, 1] else 1 for i in range(len(x))])
         targs = targ_tensor.cpu().numpy()
         prec, rec, f1, sup = precision_recall_fscore_support(targs, inps)
         return loss, prec, rec, f1, sup
