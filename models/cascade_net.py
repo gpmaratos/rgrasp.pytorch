@@ -10,6 +10,7 @@ from itertools import product
 from torchvision.models import resnet50
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
+from random import randint
 
 def build_model(device):
     return CascadeNet(device).to(device)
@@ -72,7 +73,7 @@ class CascadeDetector(nn.Module):
         self.relu = torch.nn.ReLU()
 #        self.lss = torch.nn.BCEWithLogitsLoss(reduction='mean')
         self.device = device
-        self.lss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1., 10.]))
+        self.lss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1., 1.2]))
 
     def forward(self, img_arr, img_lbl):
         x = self.high_gran_l0(img_arr)
@@ -94,6 +95,7 @@ class CascadeDetector(nn.Module):
         x = self.relu(x)
 
         x = self.l5(x)
+        x = self.relu(x)
         #each anchor is 10 pixels here
         if self.training:
             loss, prec, rec, f1, sup = self.compute_loss(x, img_lbl)
@@ -116,16 +118,21 @@ class CascadeDetector(nn.Module):
                     diff = x[i, 1, p_x, p_y] - x[i, 0, p_x, p_y]
                     differences.append((diff, p_x, p_y))
             sorted_differences = sorted(differences, key=lambda z:z[0], reverse=True)
-#            cls_sort, cls_ind = torch.sort(diff, descending=True)
-#            j, neg_inds = 0, []
-#            while len(neg_inds) < neg_size:
-#                ind = cls_ind[j].item()
-#                pair = (int(ind // 32), int(ind % 32))
-#                if pair in pos_inds:
-#                    j += 1
-#                    continue
-#                neg_inds.append(pair)
-#                j += 1
+            neg_inds = []
+            j = 0
+            if len(sorted_differences) > 0:
+                while j < neg_size:
+                    if not sorted_differences[j][1:] in pos_inds:
+                        neg_inds.append(sorted_differences[j][1:])
+                    j += 1
+                    if j > len(sorted_differences)-1:
+                        break
+            if len(neg_inds) < neg_size:
+                while len(neg_inds) < neg_size:
+                    pair = (randint(0, x.shape[2]-1), randint(0, x.shape[3]-1))
+                    if not pair in pos_inds:
+                        neg_inds.append(pair)
+
             #build array
             for pair in pos_inds:
                 inp.append(x[i, :, pair[0], pair[1]])
