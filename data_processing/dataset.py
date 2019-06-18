@@ -65,10 +65,11 @@ class CornellDataset(Dataset):
         obj_ids = list(obj_lt.keys())
         random.shuffle(obj_ids)
         split_factor = int(0.1*len(obj_ids))
+        i = 7
         if d_type == 'train':
-            index = np.array(obj_ids[:7*split_factor])
+            index = np.array(obj_ids[:i*split_factor])
         if d_type == 'val':
-            index = np.array(obj_ids[7*split_factor:8*split_factor])
+            index = np.array(obj_ids[i*split_factor:8*split_factor])
         if d_type == 'test':
             index = np.array(obj_ids[8*split_factor:])
 
@@ -98,8 +99,8 @@ class CornellDataset(Dataset):
         np_img = skimage.io.imread(img_path)
 
         #read point cloud file
-        pcd_path = img_pref + ".txt"
-        pcd_img = pcdreader.read(pcd_path)
+#        pcd_path = img_pref + ".txt"
+#        pcd_img = pcdreader.read(pcd_path)
 
         #subtract background image
         background = self.bkg_lt[img_id]
@@ -107,7 +108,7 @@ class CornellDataset(Dataset):
         np_img -= skimage.io.imread(bkg_path)
 
         #concatenate point cloud here
-        np_img = np.concatenate((np_img, pcd_img), axis=2)
+#        np_img = np.concatenate((np_img, pcd_img), axis=2)
         #need to figure out avgs and std dev of the slices to normalize later
         #also modify the input of the model to accept this data
 
