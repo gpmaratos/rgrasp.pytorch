@@ -291,7 +291,7 @@ information of the dataset.
 \begin{wrapfigure}{R}{0.5\textwidth}
 \centering
 \begin{tabular}{c|c|c|c|}
-&Object&Images&Rectangles\\
+&Objects&Images&Rectangles\\
 \hline
 Train&168&617&3567\\
 \hline
@@ -314,6 +314,12 @@ Following Zhang \textit{et al.} \cite{zhang18} the augmentation done to each
 image is the following, a random flip horizontally, a random flip vertically,
 a random rotation of the image about the center ranging from $-30\degree$ to
 $30\degree$. The background image is also subtracted to reduce noise.
+There are cases where the background image subtraction does not fit will with the
+original image, and to evaluate the quality we observe the $mean pixel value$ of an
+image. As a general rule for evaluating the quality of a subtraction, if an image
+has the background removed, then the mean pixel value would be low as the
+majority of the pixels have a value of $0$. REFERENCE FIGURE TAKING SUMMARY STATISTICS
+OF MEANS ACROSS WHOLE DATASET.
 
 Every image also has a point cloud file, that contains depth data from a kinect
 sensor. This is processed into an array and used as either separate input or
