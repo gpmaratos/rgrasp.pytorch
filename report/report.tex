@@ -6,6 +6,7 @@
 \usepackage{url}
 \usepackage{booktabs}
 \usepackage{amsfonts}
+\usepackage{amsmath}
 \usepackage{nicefrac}
 \usepackage{microtype}
 \usepackage{gensymb}
@@ -13,28 +14,47 @@
 \usepackage{subfig}
 \usepackage{wrapfig}
 
-\title{Learning to Grasp: From the Cornell Dataset}
-%\author{George Maratos (need to mention advisor)}
+\title{Fully Autonomous Grasping Using Vision and its Difficulties}
+\author{George Maratos\\\\Advisor: Dr. Brian Ziebart\\\\Secondary Commitee Member: Dr. Xinhua Zhang}
 
 \begin{document}
 \maketitle
 
+\newpage
 \begin{abstract}
-Fully autonomous grasping is a difficult problem. In this project, I explored
-the cornell grasping dataset and tried to see if I could build a model that
-learning how to model the information from this. The task to be learned was
-difficult, and the dataset was small, so I tried to mitigate these challenges
-with pretraining.
+Fully autonomous grasping is a planning task. A machine senses objects in its
+environment, and predicts the configuration of its end effector so that it can
+grasp the object. A grasp here is defined as a stable envelopement, by the machine's
+end effector, so that it can manipulate the object for simple tasks like picking
+and placing. When considering a fully autonomous setting, where the machine has no
+external help, grasping can be divided into three separate tasks. First the machine
+must be able to detect that an object is present in its field of view, then it must
+detect a location on the object which is most suitable for grasping, and finally
+it must position its end effector so that it can successfully execute the grasp.
+
+In this project, I explore these three areas of fully autonomous grasping where the
+machine's only sensing capabilities are 2-D images from a camera. I design an
+architecture which can learn how to find grasps on the image plane, and train it
+on the Cornell Grasping Dataset. Given the difficulty of the task and the
+small size of the dataset, I employ techniques to extend the utility of the
+limited data like pretraining and image augmentations. I also explore the task
+of object detection on the Cornell Dataset. The tasks described above are
+difficult, and since there is already work that successfully solves the task
+in certain settings, I investigate if the task can still be solved
+using a lower complexity model. A lower complexity would be beneficial because
+most state of the art models, as far as I know, have very large architectures
+that require large amounts of computing power or a GPU to solve in reasonable time.
+
 \end{abstract}
 
+\newpage
 \section{Introduction}
 In the robotic grasping problem the goal is, given an object, select a grasp
 configuration such that the object can be restrained and
 manipulated to some desirable end. Finding such configurations is difficult
 because of the multi-modal nature of the input and the fact that there can be
-more than one suitable grasping location, leaving machines with the task
-of determing optimality for predicted configurations.
-
+more than one suitable grasping location, which means the machine must choose
+one grasp from many optimal ones to attempt.
 Some of the earliest reviews of algorithms for grasping \cite{shimoga96,bicchi00},
 shows that the premliminary work involved solving unconstrained linear programming
 problems using objectives that measure dexterity and grasp quality. A grasp
@@ -61,7 +81,7 @@ The familiar objects are assumed to have some matching characteristics to object
 from the training data, like shape, color, and texture. Familiar objects
 introduce a new challenge of calculating similarity between objects so that
 the appropriate grasp can be determined. On the other hand, grasping algorithms
-will have no experience to utilize when approaching fully known objects. Methods
+will have no experience to utilize when approaching fully unknown objects. Methods
 of this category typically rely on finding structures in the features to
 synthesize a grasp.
 
@@ -103,7 +123,7 @@ such as, many different types of hand models, collision detection, and grasp
 quality evaluation. It could be used in setting where expensive robotic hardware
 is unavailable or used in an algorithm that evaluates grasps in the simulation
 before choosing the best one for a physical robot.
-The software was applied in work done my Miller
+The software was applied in work done by Miller
 \textit{et al.} \cite{miller03}, where they designed a grasp planning algorithm
 that modeled objects as shape primitives and generated poses based off the
 primitives.
@@ -128,12 +148,12 @@ works \cite{ferrari92}.
 Robots that are predicting grasps will not always have a complete model of the
 input, for example visual sensors might not be able to view an object from all
 directions. Kamon \textit{et al.} \cite{kamon96} attempt to predict
-grasps from only 2-d images of the object. They solve two problems
+grasps from only 2-D images of the object. They solve two problems
 simultaneously: choosing grasping points, and predicting the quality of a grasp.
 About 2000 grasping examples were collected, which were used for prediction during
 testing. Features are extracted directly from the image, for example center of
 mass, and were used to calculate the quality of a grasp. The authors claim
-that it can be predicted reliably using only local features.
+that grasp quality can be predicted reliably using only local features.
 %finish this
 
 In some settings, a full 3-d model of the object to be grasped will be unavailable.
@@ -153,9 +173,8 @@ represent the distribution of the mass of the object in relation to the hand, an
 quantities that roughly calculate the shape of the object and the alignment of the hand
 in relation to this shape. In extending their previous work, their solution is
 two-fold with a model for predicting the location of a grasp and another model for
-predicting the probability that the robotic arm will be able to achieve the grasp suing
+predicting the probability that the robotic arm will be able to achieve the grasp using
 the extra features as predictors.
-
 
 Learning a grasping point in the image plane may be easier for learning algorithms
 but they do not model the gripper configuration completely. The work by Jiang
@@ -176,13 +195,13 @@ the rectangles chosen by the first model. For calculating the rectangles on an a
 they rotate the image in discrete intervals of $15\degree$ before calculating
 the features.
 
-One approach to leveraging empirical data is to apply a non-parametric KNN
-model similar to previous works \cite{zhang11,ciocarlie14}.
+One approach to leveraging empirical data is to apply KNN
+similar to previous works \cite{zhang11,ciocarlie14}.
 The objects are represented geometrically and a good grasp is modeled based
 on the quality of grasps from previous examples in the same coordinate position.
 A simple discriminator is used to compute a binary score for a grasp from the
 dataset and a new example. It compares the coordinates from both grasps and
-returns $0$ if they contain grasps or do not, and returns $1$ if they do not
+returns $0$ if they contain grasps, and returns $1$ if they do
 match. Using this metric, they model the probability of a good grasp occuring
 at a coordinate by considering the ratio of good grasps and bad grasps in the
 set of nearest neighbors.
@@ -216,7 +235,7 @@ by Voulodimos \textit{et al.} \cite{voulodimos18} for an overview of recent
 advances. As described above, some approaches to grasp synthesis involve the
 usage of visual features. One challenge in tasks of computer vision is the
 selection of powerful and discriminative features, and deep learning methods
-are useful learning features from the data as opposed to hand crafted ones.
+are useful for learning features from the data as opposed to hand-crafted ones.
 
 Using the configuration in \cite{jiang11}, where the grasp is represented as
 a rectangle, the task can be formulated in two ways.
@@ -230,25 +249,192 @@ from bad. The network is shallow so that fast detection can occur. Then, they
 use a deeper network for selecting the best grasp from the set of grasps
 proposed by the first network.
 
-\subsection{Summary of goals}
-There are some research papers on the work (early), which are not necessarily
-about solving with learning.
-The paper associated with
-this dataset is also interesting. Hanbo's paper tries a different approach.
-There is also pinto and gupta and google which take different approaches
-involving learning from attempting grasps. Another approach involves using
-techniques from object detection architectures like faster rcnn and ssd.
+In the work done by \cite{zhou18, zhang18}, the authors design a real-time method
+for predicting poses of a parallel gripper plate on RGB and RGB-D images. The extend
+the idea
+of anchor boxes, mostly used in object detection, and add anchors not just for the
+position in an image but also the angle orientation of the rectangle. They design
+a network that uses a ResNet50 backbone, and apply a small convolutional filter to
+the features for grasp detection and orientation of the end effector. They also use
+the Cornell Dataset and employ similar techniques for image augmentation.
 
+A final approach discussed here is the one by Levine \textit{et al.} \cite{levine2018},
+and Pinto \textit{et al.} \cite{pinto2016}. The approach is different than others by
+learning how to grasp through trial and error. Through thousands of trials, the
+robots in both works were able to devise a strategy for grasping objects. The method
+for learning was done via Reinforcement Learning, and the data collection step was
+fully autonomatic requiring little human intervention.
 
+\newpage
 \section{Data Analysis}
-All scripts associated with interpreting the dataset can be found online
-\cite{ghrepo}. The dataset is approximately 880 images, which contain common
+The dataset is approximately 880 images, which contain common
 household and office objects. The entire dataset consists of about 10.4 GB.
 Each image has one object, centered in the image, placed on a white table.
 Every object has a set of grasping rectangles, that are defined by the position
 of the corners. Most objects have around 5 rectangles, but there are outliers
 with over 20. See the histogram showing the distribution of rectangles per image
 in Figure \ref{fig:recdist}.
+
+The dataset does have a set of labels for classification.
+There are $93$ classes in total, with $78$ classes being represented in the
+training data.
+The classes are more relevant for the object detection task, as the model for
+grasping does not learn or use class data explicitly. As such, it will be discussed
+more then.
+
+The method used in this paper employs an anchor box
+based detection model. The input is divided into a grid of anchors. For each of
+these anchors, a prediction is made whether or not a grasp lies inside the
+anchor box or not. At the same time, the model predicts where the grasp lies
+as an offset of the top left corner of the anchor box. See Figure \ref{fig:example}
+for a visual representation of what a prediction looks like.
+Selecting the appropriate anchor box width is important, because
+since the model makes only one prediction per anchor box there could
+be a case where the dataset will have two rectangles that fit in a single
+anchorbox.
+Here an anchor box is a square with a side length of 32 pixels. This
+is chosen because of constraints imposed by the backbone of the network.
+See Figure \ref{fig:overlapdist} for a distribution of the number
+of overlapping rectangles per image, given that anchor size is 10.
+
+In an effort to establish a baseline, we observe that the distribution of
+the rectangles apears to be normally distributed (see Figure \ref{fig:areas})
+and also that width is also normally distributed with length being closer
+to a half normal. The other offsets are more uniform. Using this information,
+we create a baseline where the respective offsets are sampled from the closest
+fitting distribution.
+
+See Figure \ref{fig:summary} for detailed information about general
+information of the dataset.
+
+
+\subsection{Data Preprocessing}
+Given that the dataset is small, in comparison with other datasets for deep
+learning, it is important to perform data augmentation to prevent overfitting.
+Following Zhang \textit{et al.} \cite{zhang18} the augmentation done to each
+image is the following, a random flip horizontally, a random flip vertically,
+a random rotation of the image about the center ranging from $-30\degree$ to
+$30\degree$. The background image is also subtracted to reduce noise. Finally,
+the images are normalized to a range of $0-1$.
+
+There are cases where the background image subtraction does not fit well with the
+original image, and to evaluate the quality we observe the mean pixel value of an
+image. As a general rule for evaluating the quality of a subtraction, if an image
+has the background removed, then the mean pixel value would be low as the
+majority of the pixels have a value of $0$.
+If we use the annotations in the dataset, the average
+mean pixel value will be approximately $112.11$ when sampled from the training set,
+with a standard deviation of $87.62$. Since there could be many mislabels in the
+backgrounds, a procedure was developed with searches for the background image that
+finds the lowest mean pixel value for each image. Using this method, the mean
+drops to $58.51$ with a standard deviation of $49.52$. Since the background images are
+virtually the same, being a white table with no object, we hypothesize that there
+are some mistakes in the annotations, or that variations in the lighting between shots
+have impacted the accuracy of the background images. See Figure \ref{fig:backgrounds} for
+details on the shift in mean pixel value.
+
+\newpage
+\subsection{Object Detection}
+Grasp detection can be seen as a subset of object detection.
+As stated earlier, detecting the object to be grasped can be helpful in finding the
+optimal grasp location. A proposed approach to grasp detection is to use a standalone
+object detection model to filter out background noise, then apply a more expensive
+algorithm for detecting grasps and finding end-effector orientation. We explore how
+one could apply an object detection module to the Cornell Grasping dataset.
+
+We consider one state of the art model YOLO \cite{redmon16}, which represents a class
+of architectures that take a fully convolutional approach to object detection. It has
+the advantage over other high performance models like Faster-RCNN \cite{girshick15} of
+being faster because there is no region proposal stage. Visual features are convoluted
+sequentially and the output of the network is a tensor. The postion of the values in the
+tensor are important as they encode information about the location of predictions on the
+input image plane.
+
+For our analysis, we use a pretrained model that was trained on MSCOCO \cite{lin14}. Which
+is a general purpose, and widely used, dataset for object detection. A question arises of
+whether or not MSCOCO will perform well in this setting. If the model
+observes many objects that were not present in MSCOCO, its performance might suffer.
+We can analyze the precision of the bounding boxes during inference, and how close
+the class labels are in both datasets.
+
+Measuring the precision of the bounding boxes is difficult because the Cornell dataset
+does not have any annotations, but we can still get some rough estimates by understanding
+how the data is configured. All images are, for the most part, centered on a white table
+and never take up more than roughly a third of the center of the image. So by looking
+at the distribution in position of the centers of the bounding boxes and how large the
+area of the bounding boxes are we can deduce how well YOLO performs in this new setting.
+
+Starting with examining the class name overlap. YOLO was trained on a set of 81 classes,
+and after running a naive search of simply matching names with Cornell we can observe
+that there are about seven classes total that have explicit matches.
+
+The distribution of the areas was calculated and shown in Figure \ref{fig:obj_det} a.
+What can be observed is a natural split around the bounding box area (square root) of
+200. When the examples with areas larger than 200 are filtered out, the total number
+of detections is $145$ compared to the original $239$ on the training set. The positions
+of the bounding box centers (on the original 320x320 image can be found in Figure
+\ref{fig:obj_det} b. The positions are mostly centered, if we consider being centered
+as existing in the center $1/3$ of the image. Although, the author admits
+that further analysis might be necessary. SHOW EXAMPLE PREDICTIONS.
+
+\newpage
+\section{Rectangle Grasp Model}
+A grasp is defined as a rectangle, oriented in the image plane. A robot with
+parallel gripper plates for end effectors would be able to line of its plates
+parrallel with the short ends of the rectangle (width) and close its gripper along the
+long edge (length). The grasping model is designed to predict the location of all
+the rectangles that would result in a successful grasp. It does this by dividing the
+image into a grid of anchor boxes, then makes a prediction for each anchor box. A
+prediction involves the detection of a grasp existing in an anchor box, and the five
+grasping parameters necessary for configuring the end effector.
+
+See Figure \ref{fig:nn} for a diagram of the architecture.
+The model consists of two major parts. The first being the backbone which extracts
+visual features from the data, which is VGG16, \cite{simonyan14},
+using batch normalization and has approximately 14 million parameters. The final
+piece is a single convolutional layer with seven filters, which represent the
+five grasping parameters $x, y, l, w, \theta$ and two scores for graspability.
+Figure \ref{fig:example} shows how the five grasping parameters are used to
+calculate the location of the grasp. The output of the model is a tensor of
+shape (Batch Size) x 7 x (num of Anchors in Width) x (num of Anchors in Height).
+During training the ground truths are matched with the corresponding vector of
+7 values in the output tensor.
+
+The loss function has two components, the first being the binary cross entropy
+with the first two scores from the vector each score represents the network's
+confidence in a grasp being present or not being present in an anchor box.
+The cross entropy
+represents the loss measure for grasp detection. Detection ground truth, in
+this case, is simply $1$ if there exists a grasp and $0$ if it does not.
+The grasp configuration loss is calculated by a Smooth L1 Loss between
+the predicted 5 values and the calculated ground truth. The total loss is inspired
+by the work by Zhang \textit{et al.} \cite{zhang18} who use a similar metric.
+The final loss can be calculated as follows.
+\begin{equation*}
+loss = 2*CrossEntropy(s_p, s_t) + smooth\_l1\_loss(\{t_x, t_y, t_w, t_l, t_\theta\}, \{x_t, y_t, w_t, l_p, \theta_p\})
+\end{equation*}
+
+Where $s_p$ is the networks confidence that a grasp exists and $s_t$ is the binary ground
+truth.$t_x, t_y, t_w, t_l, t_\theta$ are the predicted configurations and
+$x_t, y_t, w_t, l_p, \theta_p$ is the ground truth. Cross Entropy is scaled to
+emphasize the importance of detection, which is arguably the harder part of the task. The
+predicted parameters were encoded the following way. The ground truth is also encoded in
+this format.
+
+\begin{align*}
+t_x&=\frac{x-x_a}{w_a} & t_w&=\log(\frac{w}{w_a}) & t_\theta&=\frac{\theta}{2\pi}\\
+t_y&=\frac{y-y_a}{l_a} & t_l&=\log(\frac{l}{l_a}) & &
+\end{align*}
+
+\section{Experiments}
+
+\subsection{Hardware and Software Used}
+All training was done on an NVIDIA GTX 1080Ti 12GB Graphics Card. The model was
+trained for 500 epochs, each epoch taking approximately two minutes.
+
+I talk about the hardware I have access too. I trained some networks. I try
+to run some ablation experiments with and without features I extracted (and
+modification) in data analysis.
 
 \begin{figure}
 \centering
@@ -267,14 +453,44 @@ in Figure \ref{fig:recdist}.
 \label{fig:recdist}
 \end{figure}
 
-The method used in this paper employs an anchor box
-based detection model, so selecting the appropriate anchor box width is important.
-Here we choose about 16 pixel width squares, as this results in few grasping
-rectangles being connected to the same anchor box and having the largest anchor
-size simultaneously. Avoiding overlapping anchor boxes is important because
-during the training phase, as they introduce ambiguity.
-See Figure \ref{fig:overlapdist} for a distribution of the number
-of overlapping rectangles per image, given that anchor size is 16.
+\begin{figure}
+\centering
+\subfloat[Area Distribution of YOLO Bounding Boxes (square root)]{\includegraphics[width=0.4\textwidth]{figures/object_detection_total_areas.png}}
+\qquad
+\subfloat[Val]{\includegraphics[width=0.4\textwidth]{figures/object_detection_positions_filtered.png}}
+\caption{Center of Bounding Boxes from Inference with Yolo (filtered)}
+\label{fig:obj_det}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{figures/example_anchor_box.png}
+\caption{The image is partitioned into an anchor box grid. If a grasp lies in an anchor box then its position in the box is defined by (X, Y, L, W, and $\theta$)}
+\label{fig:example}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{figures/nn.png}
+\caption{Architecture of VGG16 plus head. The predictions are extracted from the final tensor}
+\label{fig:nn}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{figures/bbox_area_dist_train.png}
+\caption{Distribution of bounding box areas}
+\label{fig:areas}
+\end{figure}
+
+\begin{figure}
+\centering
+\subfloat[Old Backgrounds]{\includegraphics[width=0.4\textwidth]{figures/mean_pixel_dist_train_old_bkg.png}}
+\qquad
+\subfloat[New Backgrounds]{\includegraphics[width=0.4\textwidth]{figures/mean_pixel_dist_train_new_bkg.png}}
+\caption{The Change in the Mean Pixel Distribution using the New Backgrounds}
+\label{fig:backgrounds}
+\end{figure}
 
 \begin{figure}
 \centering
@@ -284,9 +500,6 @@ of overlapping rectangles per image, given that anchor size is 16.
 \caption{The Distribution of Number of Overlaps per Image on the Training and Validation Sets}
 \label{fig:overlapdist}
 \end{figure}
-
-See Figure \ref{fig:summary} for detailed information about general
-information of the dataset.
 
 \begin{wrapfigure}{R}{0.5\textwidth}
 \centering
@@ -306,36 +519,6 @@ Totals&244&883&5105\\
 \label{fig:summary}
 \end{wrapfigure}
 
-
-\subsection{Data Preprocessing}
-Given that the dataset is small, in comparison with other datasets for deep
-learning, it is important to perform data augmentation to prevent overfitting.
-Following Zhang \textit{et al.} \cite{zhang18} the augmentation done to each
-image is the following, a random flip horizontally, a random flip vertically,
-a random rotation of the image about the center ranging from $-30\degree$ to
-$30\degree$. The background image is also subtracted to reduce noise.
-There are cases where the background image subtraction does not fit will with the
-original image, and to evaluate the quality we observe the $mean pixel value$ of an
-image. As a general rule for evaluating the quality of a subtraction, if an image
-has the background removed, then the mean pixel value would be low as the
-majority of the pixels have a value of $0$. REFERENCE FIGURE TAKING SUMMARY STATISTICS
-OF MEANS ACROSS WHOLE DATASET.
-
-Every image also has a point cloud file, that contains depth data from a kinect
-sensor. This is processed into an array and used as either separate input or
-concatenated with the existing image tensor. Extracting the depth is written as an
-extension of numpy, and can be found online in \textit{extract\_depth}.
-
-I ran a series of tests, examining the input and targets as I change the task.
-I take a look at how I could apply linear regression to the task and see if
-I can get any results. I look at the depth data and see how I can extract
-features from it. I look at how data augmentation affects the task, and the
-clamping as well.
-
-\section{Experiments}
-I talk about the hardware I have access too. I trained some networks. I try
-to run some ablation experiments with and without features I extracted (and
-modification) in data analysis.
 
 \bibliographystyle{plain}
 \bibliography{bibliography.bib}
