@@ -12,10 +12,6 @@ from sklearn.metrics import precision_recall_fscore_support
 from CornellDataset import CornellTranslator
 import logging
 
-def record(msg):
-        print(msg)
-        logging.info(msg)
-
 def build_vgg16_headless():
     """
     returns the pretrained vgg16 convolutional model trained on imagenet by pytorch
@@ -180,8 +176,8 @@ class RectangleGrasper(nn.Module):
                     x_position = anchor_count -1
                 if y_position >= anchor_count:
                     y_position = anchor_count -1
-                x_offset = x_center % anchor_width
-                y_offset = y_center % anchor_width
+                x_offset = (x_center % anchor_width)/32
+                y_offset = (y_center % anchor_width)/32
                 width = math.log(width/anchor_width)/math.log(2)
                 length = math.log(length/anchor_width)/math.log(2)
                 angle /= 6.28 #normalize by approx 2 pi
@@ -259,7 +255,6 @@ class RectangleGrasper(nn.Module):
         target_tensor = torch.tensor(targ).to(device)
         detection_loss = torch.nn.functional.cross_entropy(input_tensor, target_tensor,
             weight=weight)
-        #I will use a threshold of 0.5 but it might not be optimal
         inps = np.array([0 if t[0] > t[1] else 1 for t in inp])
         targs = target_tensor.cpu().numpy()
         prec, rec, f1, sup = precision_recall_fscore_support(
@@ -272,8 +267,9 @@ class RectangleGrasper(nn.Module):
         target_regression_tensor = torch.stack(target_regression).to(device)
         regression_loss = torch.nn.functional.smooth_l1_loss(
             input_regression_tensor,
-            target_regression_tensor
-        )
+            target_regression_tensor,
+            reduction='none',
+        ).mean(0)
 
         return {
             'loss': 2*detection_loss + regression_loss,
@@ -281,7 +277,8 @@ class RectangleGrasper(nn.Module):
             'precision': prec,
             'recall': rec,
             'f1_score': f1,
-            'regression_loss': regression_loss,
+            'regression_loss': regression_loss.mean(),
+            'expanded_regression':regression_loss
         }
 
     def convert_to_pytorch(self, images):
@@ -299,32 +296,39 @@ class RectangleGrasper(nn.Module):
         tensor = torch.tensor(images, dtype=torch.float).to(device) / 255
         return tensor.permute(0, 3, 1, 2)
 
-def main():
+def record(msg):
     """
-    Train the grasping model and save the weights in a folder specified on
-    the command line
+    Logging function used during training. Simply prints to the terminal
+    and logs message in INFO.
     """
 
-    #set up logger
-    logging.basicConfig(filename='vgg16/train.log', level=logging.INFO)
-    #parse argument
-    parser = argparse.ArgumentParser()
-    parser.add_argument('data_path', type=str, help='path to data folder')
-    arguments = parser.parse_args()
-    #create dataset
-    dataset = CornellTranslator(arguments.data_path, 'train')
-    #create model
-    model = RectangleGrasper()
+    print(msg)
+    logging.info(msg)
+
+def fit(model, dataset, weight_path, checkpoint=0):
+    """
+    Fit parameters to the dataset. Runs 500 epochs of stochastic
+    gradient decent. Logs the training results in a file, and outputs
+    them to the terminal. Dataset is processed in batch sizes of 20.
+    The value of checkpoint determines how many epochs must pass.
+    Set checkpoint to 0 to never save intermediate weights.
+    before the weights are saved, the weights of this network are
+    approximately 57 MB. In the future it would be nice to have validation
+    results while training.
+    """
+
+    #log in file
+    logging.basicConfig(filename=os.path.join(weight_path, 'train.log'), level=logging.INFO)
     #create optimizer
     opt = torch.optim.SGD([
         {'params': model.parameters()}
         ],lr=1e-4, momentum=0.9, weight_decay=1e-4
     )
-    #get gpu
-    device = get_device()
-    model = model.to(device)
-    for i in range(500):
-        record("Epoch %d"%(i+1))
+    #find device
+    device = next(model.parameters()).device
+    #run training loop
+    for i in range(1, 501):
+        record("Epoch %d"%(i))
         for images, labels, percentage in dataset.yield_batches(20):
             #read and normalize the batch of images
             result = model(images, labels)
@@ -332,48 +336,166 @@ def main():
             opt.zero_grad()
             result['loss'].backward()
             opt.step()
-            msg = 'Completed %.2f ~ DLoss %.5f ~ RLoss %.5f ~ Precision %.5f ~ Recall %.5f ~ F1 %.5f'%(
+            msg = 'Completed %.2f ~ DLoss %.5f ~ RLoss %.5f ~ Precision %.5f ~ Recall %.5f ~ F1 %.5f ~ X ~ %.5f ~ Y ~ %.5f ~ W ~ %.5f ~ L ~ %.5f ~ Theta ~ %.5f'%(
                 percentage,
                 result['detection_loss'].item(),
                 result['regression_loss'].item(),
                 result['precision'],
                 result['recall'],
-                result['f1_score']
+                result['f1_score'],
+                result['expanded_regression'][0].item(),
+                result['expanded_regression'][1].item(),
+                result['expanded_regression'][2].item(),
+                result['expanded_regression'][3].item(),
+                result['expanded_regression'][4].item(),
             )
             record(msg)
-        if i % 10 == 0:
+        if checkpoint > 0 and i % checkpoint == 0:
             model = model.to(torch.device('cpu'))
-            m_pref = 'model-epoch-%d-'%(i+1) + str(datetime.date.today())
+            m_pref = 'model-epoch-%d-'%(i) + str(datetime.date.today())
             w_path = os.path.join('vgg16', m_pref+'.pt')
             record("\nSaving Model at: %s"%(w_path))
             torch.save(model.state_dict(), w_path)
             model = model.to(device)
 
-def eval():
-    """evaluation mode"""
+    print('Training Concluded, saving final weights.')
+    model = model.to(torch.device('cpu'))
+    m_pref = 'model-final-'%(i) + str(datetime.date.today())
+    w_path = os.path.join('vgg16', m_pref+'.pt')
+    record("\nSaving Model at: %s"%(w_path))
+    torch.save(model.state_dict(), w_path)
+    model = model.to(device)
+    return model
+
+def calculate_all_results(data_path, weight_path):
+    """
+    Calculates all the metrics for all of the datasets
+    """
+
+    #get device
+    device = get_device()
+    #create model
+    model = RectangleGrasper().to(device)
+    #log in file
+    logging.basicConfig(filename=os.path.join(weight_path, 'metrics.log'), level=logging.INFO)
+    #create the datasets
+    train_dataset = CornellTranslator(data_path, 'train')
+    val_dataset = CornellTranslator(data_path, 'val')
+    test_dataset = CornellTranslator(data_path, 'test')
+    #extract the names of the weights files
+    files = os.listdir(weight_path)
+    weight_files = []
+    for file in files:
+        _, extension = file.split('.')
+        if extension == 'pt':
+            weight_files.append(file)
+    ordered_files = []
+    for file in weight_files:
+        epoch = int(file.split('-')[2])
+        ordered_files.append((epoch, file))
+    ordered_files = sorted(ordered_files, key=lambda x:x[0])
+    #for each weight file, process its performance on all datasets
+    for ordered_file in ordered_files:
+        weights_path = os.path.join(weight_path, ordered_file[1])
+        #load model
+        model.load_state_dict(torch.load(weights_path))
+        #evaluate on datasets
+        train_results = eval(model, train_dataset)
+        val_results = eval(model, val_dataset)
+        test_results = eval(model, test_dataset)
+        #record results
+        record("Train: " + train_results)
+        record("Val: " + val_results)
+        record("Test: " + test_results)
+
+def eval(model, dataset):
+    """
+    Evaluates the performance of the model on the selected dataset.
+    Returns the results as a string, because I only used this to print
+    right away.
+    """
+
+#    model = model.eval()
+    detection_losses, regression_losses, precisions, recalls, f1_scores = [], [], [], [], []
+    x, y, w , l, theta = [], [], [], [], []
+    for images, labels, percentage in dataset.yield_batches(20):
+        #read and normalize the batch of images
+        result = model(images, labels)
+        detection_losses.append(result['detection_loss'].item())
+        regression_losses.append(result['regression_loss'].item())
+        precisions.append(result['precision'])
+        recalls.append(result['recall'])
+        f1_scores.append(result['f1_score'])
+        x.append(result['expanded_regression'][0].item())
+        y.append(result['expanded_regression'][1].item())
+        w.append(result['expanded_regression'][2].item())
+        l.append(result['expanded_regression'][3].item())
+        theta.append(result['expanded_regression'][4].item())
+        print(' Progress %.2f  '%(percentage), end='\r')
+    print('')
+    msg = '~ DLoss ~ %.5f ~ RLoss ~ %.5f ~ Precision ~ %.5f ~ Recall ~ %.5f ~ F1 %.5f ~ X ~ %.5f ~ Y ~ %.5f ~ W ~ %.5f ~ L ~ %.5f ~ Theta ~ %.5f'%(
+        sum(detection_losses)/len(detection_losses),
+        sum(regression_losses)/len(regression_losses),
+        sum(precisions)/len(precisions),
+        sum(recalls)/len(recalls),
+        sum(f1_scores)/len(f1_scores),
+        sum(x)/len(x),
+        sum(y)/len(y),
+        sum(w)/len(w),
+        sum(l)/len(l),
+        sum(theta)/len(theta)
+    )
+    return msg
+
+def main():
+    """
+    Train the grasping model and save the weights in a folder specified on
+    the command line
+    """
+
+    #set up logger
     #parse argument
     parser = argparse.ArgumentParser()
     parser.add_argument('data_path', type=str, help='path to data folder')
     parser.add_argument('weights_path', type=str, help='path to weights')
     arguments = parser.parse_args()
-    #create dataset
-    dataset = CornellTranslator(arguments.data_path, 'train')
-    #create model
-    model = RectangleGrasper()
-    model.load_state_dict(torch.load(arguments.weights_path))
-    model = model.eval()
+    calculate_all_results(arguments.data_path, arguments.weights_path)
+#    #create dataset
+#    dataset = CornellTranslator(arguments.data_path, 'test')
+#    #get gpu if exists
+#    device = get_device()
+#    #create model
+#    model = RectangleGrasper().to(device)
+#    model.load_state_dict(torch.load(arguments.weights_path))
+#    #run eval
+#    eval(model, dataset)
 
-    for images, labels, percentage in dataset.yield_batches(20):
-        #read and normalize the batch of images
-        result = model(images, labels)
-        for i, j in itertools.product(range(10), range(10)):
-            if result[0, 0, i, j] < result[0, 1, i, j]:
-                offsets = result[0, 2:, i, j]
-                x_pred = i*32 + offsets[0].item()
-                y_pred = j*32 + offsets[1].item()
-                w_pred = math.pow(2, offsets[2].item())*32
-                l_pred = math.pow(2, offsets[3].item())*32
-                t_pred = offsets[4].item() * 6.28
-                import pdb;pdb.set_trace()
-                print('Prediction at %d, %d'%(i, j))
-eval()
+main()
+
+#def eval():
+#    """evaluation mode"""
+#    #parse argument
+#    parser = argparse.ArgumentParser()
+#    parser.add_argument('data_path', type=str, help='path to data folder')
+#    parser.add_argument('weights_path', type=str, help='path to weights')
+#    arguments = parser.parse_args()
+#    #create dataset
+#    dataset = CornellTranslator(arguments.data_path, 'train')
+#    #create model
+#    model = RectangleGrasper()
+#    model.load_state_dict(torch.load(arguments.weights_path))
+#    model = model.eval()
+#
+#    for images, labels, percentage in dataset.yield_batches(20):
+#        #read and normalize the batch of images
+#        result = model(images, labels)
+#        for i, j in itertools.product(range(10), range(10)):
+#            if result[0, 0, i, j] < result[0, 1, i, j]:
+#                offsets = result[0, 2:, i, j]
+#                x_pred = i*32 + offsets[0].item()
+#                y_pred = j*32 + offsets[1].item()
+#                w_pred = math.pow(2, offsets[2].item())*32
+#                l_pred = math.pow(2, offsets[3].item())*32
+#                t_pred = offsets[4].item() * 6.28
+#                import pdb;pdb.set_trace()
+#                print('Prediction at %d, %d'%(i, j))
