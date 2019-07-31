@@ -53,57 +53,57 @@
 \renewcommand{\sfdefault}{phv}
 
 % change this every year for notice string at bottom
-\newcommand{\@neuripsordinal}{32nd}
-\newcommand{\@neuripsyear}{2018}
-\newcommand{\@neuripslocation}{Montr\'{e}al, Canada}
+\newcommand{\@neuripsordinal}{0}
+\newcommand{\@neuripsyear}{2019}
+\newcommand{\@neuripslocation}{UIC}
 
-% handle tweaks for camera-ready copy vs. submission copy
-\if@preprint
-  \newcommand{\@noticestring}{%
-    Preprint. Work in progress.%
-  }
-\else
-  \if@neuripsfinal
-    \newcommand{\@noticestring}{%
-      \@neuripsordinal\/ Conference on Neural Information Processing Systems
-      (NeurIPS \@neuripsyear), \@neuripslocation.%
-    }
-  \else
-    \newcommand{\@noticestring}{%
-      Submitted to \@neuripsordinal\/ Conference on Neural Information
-      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
-    }
-
-    % line numbers for submission
-    \RequirePackage{lineno}
-    \linenumbers
-
-    % fix incompatibilities between lineno and amsmath, if required, by
-    % transparently wrapping linenomath environments around amsmath
-    % environments
-    \AtBeginDocument{%
-      \@ifpackageloaded{amsmath}{%
-        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
-          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
-          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
-          \renewenvironment{#1}%
-                           {\linenomath\csname old#1\endcsname}%
-                           {\csname oldend#1\endcsname\endlinenomath}%
-        }%
-        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
-          \patchAmsMathEnvironmentForLineno{#1}%
-          \patchAmsMathEnvironmentForLineno{#1*}%
-        }%
-        \patchBothAmsMathEnvironmentsForLineno{equation}%
-        \patchBothAmsMathEnvironmentsForLineno{align}%
-        \patchBothAmsMathEnvironmentsForLineno{flalign}%
-        \patchBothAmsMathEnvironmentsForLineno{alignat}%
-        \patchBothAmsMathEnvironmentsForLineno{gather}%
-        \patchBothAmsMathEnvironmentsForLineno{multline}%
-      }{}
-    }
-  \fi
-\fi
+%% handle tweaks for camera-ready copy vs. submission copy
+%\if@preprint
+%  \newcommand{\@noticestring}{%
+%    Preprint. Work in progress.%
+%  }
+%\else
+%%  \if@neuripsfinal
+%%    \newcommand{\@noticestring}{%
+%%      \@neuripsordinal\/ Conference on Neural Information Processing Systems
+%%      (NeurIPS \@neuripsyear), \@neuripslocation.%
+%%    }
+%%  \else
+%%    \newcommand{\@noticestring}{%
+%%      Submitted to \@neuripsordinal\/ Conference on Neural Information
+%%      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
+%%    }
+%
+%    % line numbers for submission
+%    \RequirePackage{lineno}
+%    \linenumbers
+%
+%    % fix incompatibilities between lineno and amsmath, if required, by
+%    % transparently wrapping linenomath environments around amsmath
+%    % environments
+%    \AtBeginDocument{%
+%      \@ifpackageloaded{amsmath}{%
+%        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+%          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+%          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+%          \renewenvironment{#1}%
+%                           {\linenomath\csname old#1\endcsname}%
+%                           {\csname oldend#1\endcsname\endlinenomath}%
+%        }%
+%        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+%          \patchAmsMathEnvironmentForLineno{#1}%
+%          \patchAmsMathEnvironmentForLineno{#1*}%
+%        }%
+%        \patchBothAmsMathEnvironmentsForLineno{equation}%
+%        \patchBothAmsMathEnvironmentsForLineno{align}%
+%        \patchBothAmsMathEnvironmentsForLineno{flalign}%
+%        \patchBothAmsMathEnvironmentsForLineno{alignat}%
+%        \patchBothAmsMathEnvironmentsForLineno{gather}%
+%        \patchBothAmsMathEnvironmentsForLineno{multline}%
+%      }{}
+%    }
+%  \fi
+%\fi
 
 % load natbib unless told otherwise
 \if@natbib
@@ -278,7 +278,7 @@
     \thispagestyle{empty}
     \@maketitle
     \@thanks
-    \@notice
+%    \@notice
   \endgroup
   \let\maketitle\relax
   \let\thanks\relax
