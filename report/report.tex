@@ -13,8 +13,9 @@
 \usepackage{graphicx}
 \usepackage{subfig}
 \usepackage{wrapfig}
+\usepackage{hyperref}
 
-\title{Fully Autonomous Grasping Using Vision and its Difficulties}
+\title{Fully Autonomous Grasping Using Vision}
 \author{George Maratos\\\\Advisor: Dr. Brian Ziebart\\\\Secondary Commitee Member: Dr. Xinhua Zhang}
 
 \begin{document}
@@ -154,7 +155,6 @@ About 2000 grasping examples were collected, which were used for prediction duri
 testing. Features are extracted directly from the image, for example center of
 mass, and were used to calculate the quality of a grasp. The authors claim
 that grasp quality can be predicted reliably using only local features.
-%finish this
 
 In some settings, a full 3-d model of the object to be grasped will be unavailable.
 The work by Saxena \textit{et al.} \cite{saxena07,saxena08} address this.
@@ -275,6 +275,13 @@ of the corners. Most objects have around 5 rectangles, but there are outliers
 with over 20. See the histogram showing the distribution of rectangles per image
 in Figure \ref{fig:recdist}.
 
+We also observe that the distribution of
+the rectangles apears to be normally distributed (see Figure \ref{fig:areas})
+and also that width is also normally distributed with length being closer
+to a half normal. The other offsets are more uniform.
+See Figure \ref{fig:summary} for detailed information about general
+information of the dataset.
+
 The dataset does have a set of labels for classification.
 There are $93$ classes in total, with $78$ classes being represented in the
 training data.
@@ -297,17 +304,6 @@ is chosen because of constraints imposed by the backbone of the network.
 See Figure \ref{fig:overlapdist} for a distribution of the number
 of overlapping rectangles per image, given that anchor size is 10.
 
-In an effort to establish a baseline, we observe that the distribution of
-the rectangles apears to be normally distributed (see Figure \ref{fig:areas})
-and also that width is also normally distributed with length being closer
-to a half normal. The other offsets are more uniform. Using this information,
-we create a baseline where the respective offsets are sampled from the closest
-fitting distribution.
-
-See Figure \ref{fig:summary} for detailed information about general
-information of the dataset.
-
-
 \subsection{Data Preprocessing}
 Given that the dataset is small, in comparison with other datasets for deep
 learning, it is important to perform data augmentation to prevent overfitting.
@@ -315,7 +311,7 @@ Following Zhang \textit{et al.} \cite{zhang18} the augmentation done to each
 image is the following, a random flip horizontally, a random flip vertically,
 a random rotation of the image about the center ranging from $-30\degree$ to
 $30\degree$. The background image is also subtracted to reduce noise. Finally,
-the images are normalized to a range of $0-1$.
+the image pixels are normalized to a range of $[0,1]$.
 
 There are cases where the background image subtraction does not fit well with the
 original image, and to evaluate the quality we observe the mean pixel value of an
@@ -334,7 +330,7 @@ have impacted the accuracy of the background images. See Figure \ref{fig:backgro
 details on the shift in mean pixel value.
 
 \newpage
-\subsection{Object Detection}
+\section{Object Detection}
 Grasp detection can be seen as a subset of object detection.
 As stated earlier, detecting the object to be grasped can be helpful in finding the
 optimal grasp location. A proposed approach to grasp detection is to use a standalone
@@ -375,7 +371,8 @@ of detections is $145$ compared to the original $239$ on the training set. The p
 of the bounding box centers (on the original 320x320 image can be found in Figure
 \ref{fig:obj_det} b. The positions are mostly centered, if we consider being centered
 as existing in the center $1/3$ of the image. Although, the author admits
-that further analysis might be necessary. SHOW EXAMPLE PREDICTIONS.
+that further analysis might be necessary. See Figure \ref{fig:obj_detect} for examples
+of detections.
 
 \newpage
 \section{Rectangle Grasp Model}
@@ -391,14 +388,20 @@ grasping parameters necessary for configuring the end effector.
 See Figure \ref{fig:nn} for a diagram of the architecture.
 The model consists of two major parts. The first being the backbone which extracts
 visual features from the data, which is VGG16, \cite{simonyan14},
-using batch normalization and has approximately 14 million parameters. The final
+using batch normalization and has approximately 14 million parameters. The
+pretraining was done on ImageNet for the task if classification.
+The final
 piece is a single convolutional layer with seven filters, which represent the
 five grasping parameters $x, y, l, w, \theta$ and two scores for graspability.
 Figure \ref{fig:example} shows how the five grasping parameters are used to
 calculate the location of the grasp. The output of the model is a tensor of
 shape (Batch Size) x 7 x (num of Anchors in Width) x (num of Anchors in Height).
 During training the ground truths are matched with the corresponding vector of
-7 values in the output tensor.
+7 values in the output tensor. To perform inference, the model predicts
+whether a not a grasp exists in an anchor by comparing the predicted scores
+for graspability and non-graspability (which exist in the 7 value vector)
+and whenever the graspability score is larger than the non-graspable it
+is considered a positive prediction.
 
 The loss function has two components, the first being the binary cross entropy
 with the first two scores from the vector each score represents the network's
@@ -419,29 +422,111 @@ truth.$t_x, t_y, t_w, t_l, t_\theta$ are the predicted configurations and
 $x_t, y_t, w_t, l_p, \theta_p$ is the ground truth. Cross Entropy is scaled to
 emphasize the importance of detection, which is arguably the harder part of the task. The
 predicted parameters were encoded the following way. The ground truth is also encoded in
-this format.
+the following format.
 
 \begin{align*}
 t_x&=\frac{x-x_a}{w_a} & t_w&=\log(\frac{w}{w_a}) & t_\theta&=\frac{\theta}{2\pi}\\
 t_y&=\frac{y-y_a}{l_a} & t_l&=\log(\frac{l}{l_a}) & &
 \end{align*}
 
+\newpage
 \section{Experiments}
 
 \subsection{Hardware and Software Used}
-All training was done on an NVIDIA GTX 1080Ti 12GB Graphics Card. The model was
-trained for 500 epochs, each epoch taking approximately two minutes.
+See Figure \ref{fig:specs} for details about the machine used for training.
 
-I talk about the hardware I have access too. I trained some networks. I try
-to run some ablation experiments with and without features I extracted (and
-modification) in data analysis.
+\begin{wrapfigure}{R}{0.5\textwidth}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+CPU&Intel Xeon E5-2697 @ 2.60 GHz\\
+\hline
+RAM&157 GB DDR4\\
+\hline
+GPU&NVIDIA GeForce GTX 1080 Ti 12 GB\\
+\hline
+\end{tabular}
+\caption{Machine Specifications}
+\label{fig:specs}
+\end{wrapfigure}
+
+All work was done using Python 3, and the major libraries were
+Numpy, OpenCv, and Pytorch. Numpy and OpenCV were used for image
+processing and augmentation, and all Deep Learning Modules were done
+in Pytorch, with GPU support. The pretrained networks also come from
+Pytorch, specifically from the torchvision library.
+All code and documentation can be found
+at \url{https://github.com/gpmaratos/rgrasp.pytorch}. The documentation
+is generated using Doxygen.
+
+\subsection{Results}
+The prediction space for the Rectangle Grasp Model is very large, there are
+$100$ anchors with the majority of them not containing a grasp on average.
+This makes training difficult as the model has a tendency to optimize
+towards predicting negative for all anchors. There were a couple ways chosen
+to mitigate this, the first was to scale the calculated cross entropy loss
+in favor of the positive class. In this case, we chose a scale of $1$ to
+$\frac{3}{2}$. The next strategy was to use a technique called Hard Mining
+\cite{liu15}, which involves sampling instead of
+using all examples. The sampling ratio was $3$ to $1$ in favor of the
+negative class. The model's backbone was pretrained on ImageNet as discussed
+earlier, there were no restrictions on updating the weights during
+training on Cornell so the model was trained end to end.
+
+For measuring the performance of the detection, a simple binary metric was
+used. Either an anchor did or did not contain a grasp. Precision, recall,
+and F1 Score were calculated based on the network's performance using this
+metric. Since the network outputs two scores, one for graspability one for
+non-graspability, whenever the score for graspability was larger it was
+considered a positive prediction for the network. See Figure
+\ref{fig:rgrasp_detection} for results on the training and the validation
+set for $500$ epochs of training. For results on how the Cross Entropy
+and smooth l1 loss change during training see Figure \ref{fig:rgrasp_loss}.
+The test results can be found in Figure \ref{fig:test_results} along with
+the final results from the training and validation sets.
+
+\subsection{Conclusion}
+An explanation for why the peformance is poor (besides the overfitting
+that is clearly occuring after epoch 100) on detection, might be because
+the performance metric might be too strict. In most object detection settings,
+and in \cite{zhou18, zhang18}, measuring the intersection over union of the
+bounding boxes is used. This is because in many cases, the model might predict
+a box that encapsulates most of the object but is missing a small portion. In
+this scenario the metric used here would consider that incorrect because it
+does not overlap completely. It is also worth noting the performance of the
+regressor on selecting the angles for orienting the rectangle. By observing
+the angle score (represented as theta in the figure) which is one component of
+the smooth l1 loss, we can see that on the test set the predicted angle was off
+by on average $3\degree$.
+
+Because of the configuration of the network, the features for the detection
+and regression component are shared. This could cause a conflict of interest
+when the weights are being updated during training, and the features might
+be rendered suboptimal for one of tasks. It is worth investigating in the
+future if this is true, and if it is then designing architectures that
+use separate features for each. The task of grasp classification was
+not explored here, but might be worth investigating the performance of
+this type of architecture in a setting similar to \cite{saxena08a}. The
+problem could be formulated as, given an image patch, determine if a
+grasp exists in the center of the patch or not. The same could be done
+for the regression task.
+
+\subsection{Acknowledgement}
+I would like to thank Dr. Brian Ziebart for all his help, advice,
+and computing resources while I worked on this project and
+for letting me be apart of his lab where I learned many valuable
+lessons. Also,
+I would like to thank Dr. Xinhua Zhang for being on my commitee
+and taking the time to review my work. Finally, the
+University of Illnois at Chicago for providing me with funding
+and the resources to work towards my goals.
 
 \begin{figure}
 \centering
 \subfloat{\includegraphics[width=0.3\textwidth]{figures/label_object_norm_1.png}}
 \subfloat{\includegraphics[width=0.3\textwidth]{figures/label_object_norm_2.png}}
 \subfloat{\includegraphics[width=0.3\textwidth]{figures/label_object_norm_3.png}}
-\caption{Labeled images in the dataset, the right most image has background subtraction}
+\caption{ground truth and images in the dataset, the right most image has background subtraction}
 \end{figure}
 
 \begin{figure}
@@ -455,10 +540,19 @@ modification) in data analysis.
 
 \begin{figure}
 \centering
+\subfloat[Cross Entropy]{\includegraphics[width=0.4\textwidth]{figures/rgrasp_detection_loss.png}}
+\qquad
+\subfloat[Smooth L1 Loss]{\includegraphics[width=0.4\textwidth]{figures/rgrasp_regression_loss.png}}
+\caption{Loss Values over 500 Epochs of training. Training Loss (Red) and Validation Loss (Blue)}
+\label{fig:rgrasp_loss}
+\end{figure}
+
+\begin{figure}
+\centering
 \subfloat[Area Distribution of YOLO Bounding Boxes (square root)]{\includegraphics[width=0.4\textwidth]{figures/object_detection_total_areas.png}}
 \qquad
-\subfloat[Val]{\includegraphics[width=0.4\textwidth]{figures/object_detection_positions_filtered.png}}
-\caption{Center of Bounding Boxes from Inference with Yolo (filtered)}
+\subfloat[Center of Bounding Boxes from Inference with Yolo (filtered)]{\includegraphics[width=0.4\textwidth]{figures/object_detection_positions_filtered.png}}
+\caption{Observations from the Object Detection Experiment}
 \label{fig:obj_det}
 \end{figure}
 
@@ -501,6 +595,28 @@ modification) in data analysis.
 \label{fig:overlapdist}
 \end{figure}
 
+\begin{figure}
+\centering
+\subfloat[Good]{\includegraphics[width=0.2\textwidth]{figures/object_detection_example.png}}
+\qquad
+\subfloat[Wrong Class]{\includegraphics[width=0.2\textwidth]{figures/object_detection_other_example.png}}
+\qquad
+\subfloat[Bad Precision]{\includegraphics[width=0.2\textwidth]{figures/object_detection_bad_example.png}}
+\caption{The Three Examples of Detections When Using YOLO on Cornell}
+\label{fig:obj_detect}
+\end{figure}
+
+\begin{figure}
+\centering
+\subfloat[Precision]{\includegraphics[width=0.4\textwidth]{figures/rgrasp_precision.png}}
+\qquad
+\subfloat[Recall]{\includegraphics[width=0.4\textwidth]{figures/rgrasp_recall.png}}
+\qquad
+\subfloat[F1 Score]{\includegraphics[width=0.4\textwidth]{figures/rgrasp_f1.png}}
+\caption{Metrics on Grasp Detection for the Rectangle Grasp Model over 500 Epochs for Train (blue) and Val (red)}
+\label{fig:rgrasp_detection}
+\end{figure}
+
 \begin{wrapfigure}{R}{0.5\textwidth}
 \centering
 \begin{tabular}{c|c|c|c|}
@@ -517,6 +633,29 @@ Totals&244&883&5105\\
 \end{tabular}
 \caption{Summary Counts of the Dataset}
 \label{fig:summary}
+\end{wrapfigure}
+
+\begin{wrapfigure}{R}{0.5\textwidth}
+\centering
+\begin{tabular}{|c | c | c | c|}
+\hline
+&Train&Val&Test\\
+\hline
+DL&0.256&0.622&0.622\\
+\hline
+RL&0.11&0.24&0.24\\
+\hline
+Precision&0.680&0.41&0.38\\
+\hline
+Recall&0.847&0.37&0.31\\
+\hline
+F1&0.753&0.38&0.34\\
+\hline
+Theta&0.014&0.022&0.017\\
+\hline
+\end{tabular}
+\caption{Summary of Rectangle Grasp Model Performance}
+\label{fig:test_results}
 \end{wrapfigure}
 
 
